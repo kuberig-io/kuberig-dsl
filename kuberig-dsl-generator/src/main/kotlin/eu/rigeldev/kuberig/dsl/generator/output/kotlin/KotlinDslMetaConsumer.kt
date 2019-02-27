@@ -960,7 +960,7 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
             while (docSplitsIt.hasNext()) {
                 val originalDocSplit = docSplitsIt.next()
                 val currentDocSplit = if (originalDocSplit.startsWith("http")){
-                    "@see [link]($originalDocSplit)"
+                    "[$originalDocSplit]($originalDocSplit)"
                 } else {
                     originalDocSplit.replace("*", "{@literal *}")
                 }
