@@ -12,6 +12,7 @@ import eu.rigeldev.kuberig.dsl.generator.meta.types.*
 import eu.rigeldev.kuberig.dsl.generator.output.DslMetaConsumer
 import java.io.BufferedWriter
 import java.io.File
+import java.util.*
 
 class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaConsumer {
 
@@ -40,126 +41,9 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
     }
 
     private fun generateListDslTypes() {
+        val listDslTypeGenerator = KotlinListDslTypeGenerator(this.classWriterProducer)
 
-        listDslTypes.forEach { listDslMeta ->
-
-            val typeName = listDslMeta.declarationType()
-
-            val classWriter = this.classWriter(typeName.absoluteName)
-
-            classWriter.use { writer ->
-
-                writer.write("package ${listDslMeta.type.packageName()}")
-                writer.newLine()
-
-                writer.newLine()
-
-                writer.write("import javax.annotation.processing.Generated")
-                writer.newLine()
-                writer.write("import eu.rigeldev.kuberig.dsl.KubeRigDslMarker")
-                writer.newLine()
-                writer.write("import eu.rigeldev.kuberig.dsl.DslType")
-                writer.newLine()
-                if (listDslMeta.meta.itemType.requiresImport()) {
-                    writer.write("import ${listDslMeta.meta.itemType.absoluteName}")
-                    writer.newLine()
-                }
-                if (listDslMeta.meta.itemType.requiresImport()) {
-                    writer.write("import ${listDslMeta.meta.itemType.absoluteName}Dsl")
-                    writer.newLine()
-                    writer.write("import java.util.stream.Collectors")
-                    writer.newLine()
-                } else {
-                    writer.write("import java.util.List.copyOf")
-                    writer.newLine()
-                }
-
-
-                writer.newLine()
-
-                val resultListItemType = listDslMeta.meta.itemType.typeShortName()
-
-                writer.write("@Generated")
-                writer.newLine()
-                writer.write("@KubeRigDslMarker")
-                writer.newLine()
-                writer.write("open class ${typeName.typeShortName()} : DslType<List<$resultListItemType>>  {")
-                writer.newLine()
-
-                val listItemType = if (listDslMeta.meta.itemType.requiresImport()) {
-                    "${listDslMeta.meta.itemType.typeShortName()}Dsl"
-                } else {
-                    listDslMeta.meta.itemType.typeShortName()
-                }
-
-                writer.write("    private val list = mutableListOf<$listItemType>()")
-                writer.newLine()
-
-                writer.newLine()
-
-                val addMethodNameCandidate = if (listDslMeta.meta.name.endsWith("s") && listDslMeta.meta.name != "tls") {
-                    listDslMeta.meta.name.substring(0, listDslMeta.meta.name.length - 1)
-                } else {
-                    "item"
-                }
-                // TODO should check on all language keywords
-                val addMethodName = if (addMethodNameCandidate == "object") {
-                    "`$addMethodNameCandidate`"
-                } else {
-                    addMethodNameCandidate
-                }
-
-                if (listDslMeta.meta.itemType.requiresImport()) {
-                    writer.write("    fun $addMethodName(init : $listItemType.() -> Unit) {")
-                    writer.newLine()
-                    writer.write("        val item = $listItemType()")
-                    writer.newLine()
-                    writer.write("        item.init()")
-                    writer.newLine()
-                    writer.write("        this.list.add(item)")
-                    writer.newLine()
-                    writer.write("    }")
-                    writer.newLine()
-
-                    writer.newLine()
-
-                    writer.write("    override fun toValue() : List<$resultListItemType> { ")
-                    writer.newLine()
-                    writer.write("        return this.list.stream()")
-                    writer.newLine()
-                    writer.write("            .map($listItemType::toValue)")
-                    writer.newLine()
-                    writer.write("            .collect(Collectors.toList())")
-                    writer.newLine()
-                    writer.write("    }")
-                    writer.newLine()
-
-                    writer.newLine()
-
-                } else {
-                    writer.write("    fun $addMethodName($addMethodName : $listItemType) {")
-                    writer.newLine()
-                    writer.write("        this.list.add($addMethodName)")
-                    writer.newLine()
-                    writer.write("    }")
-                    writer.newLine()
-
-                    writer.newLine()
-
-                    writer.write("    override fun toValue() : List<$resultListItemType> {")
-                    writer.newLine()
-                    writer.write("        return copyOf(this.list)")
-                    writer.newLine()
-                    writer.write("    }")
-                    writer.newLine()
-                }
-
-
-                writer.write("}")
-                writer.newLine()
-            }
-        }
-
+        listDslTypes.forEach(listDslTypeGenerator::generateListDslType)
     }
 
     private fun generateMapDslTypes() {
@@ -195,6 +79,8 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
                     writer.write("import java.util.Map.copyOf")
                     writer.newLine()
                 }
+                writer.write("import java.util.Collections")
+                writer.newLine()
 
 
                 writer.newLine()
@@ -241,7 +127,7 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
 
                     writer.write("    override fun toValue() : Map<String, $resultMapItemValueType> { ")
                     writer.newLine()
-                    writer.write("        return this.map.entries.stream()")
+                    writer.write("        return Collections.unmodifiableMap(this.map.entries.stream()")
                     writer.newLine()
                     writer.write("            .collect(Collectors.toMap(")
                     writer.newLine()
@@ -249,7 +135,7 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
                     writer.newLine()
                     writer.write("                { e -> e.value.toValue() }")
                     writer.newLine()
-                    writer.write("            ))")
+                    writer.write("            )))")
                     writer.newLine()
                     writer.write("    }")
                     writer.newLine()
@@ -1072,7 +958,12 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
             lineBuffer.append(" *")
 
             while (docSplitsIt.hasNext()) {
-                val currentDocSplit = docSplitsIt.next().replace("*", "{@literal *}")
+                val originalDocSplit = docSplitsIt.next()
+                val currentDocSplit = if (originalDocSplit.startsWith("http")){
+                    "@see [link]($originalDocSplit)"
+                } else {
+                    originalDocSplit.replace("*", "{@literal *}")
+                }
 
                 if (lineBuffer.length + 1 + currentDocSplit.length > lineLength) {
                     // current doc split does not fit on current line
