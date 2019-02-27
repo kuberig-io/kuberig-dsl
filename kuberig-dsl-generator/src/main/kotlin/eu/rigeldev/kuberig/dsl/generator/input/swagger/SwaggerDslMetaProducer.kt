@@ -2,6 +2,10 @@ package eu.rigeldev.kuberig.dsl.generator.input.swagger
 
 import eu.rigeldev.kuberig.dsl.generator.input.DslMetaProducer
 import eu.rigeldev.kuberig.dsl.generator.meta.*
+import eu.rigeldev.kuberig.dsl.generator.meta.types.DslContainerTypeMeta
+import eu.rigeldev.kuberig.dsl.generator.meta.types.DslInterfaceTypeMeta
+import eu.rigeldev.kuberig.dsl.generator.meta.types.DslObjectTypeMeta
+import eu.rigeldev.kuberig.dsl.generator.meta.types.DslSealedTypeMeta
 import io.swagger.models.ModelImpl
 import io.swagger.models.RefModel
 import io.swagger.models.Swagger
@@ -12,7 +16,7 @@ import java.io.File
 class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
 
     private lateinit var spec: Swagger
-    private val dslGeneratorMeta = DslMeta()
+    private lateinit var dslMeta : DslMeta
 
     var showIgnoredRefModels : Boolean = false
 
@@ -22,11 +26,20 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         val title = spec.info.title
         val version = spec.info.version
 
+        this.dslMeta = DslMeta(
+            DslPlatformSpecifics(
+                "group",
+                "version",
+                "kind",
+                "io.k8s"
+            )
+        )
+
         println("$title ($version)...")
 
         this.processDefinitions()
 
-        return dslGeneratorMeta
+        return dslMeta
     }
 
     private fun processDefinitions() {
@@ -81,7 +94,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
             val typeDependencies = determineModelTypeDependencies(model)
             val attributes = determineModelAttributes(model)
 
-            this.dslGeneratorMeta.registerType(
+            this.dslMeta.registerType(
                 DslObjectTypeMeta(
                     absoluteName,
                     packageName,
@@ -95,7 +108,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         else if (model.type == "string") {
 
             when {
-                model.format == null -> this.dslGeneratorMeta.registerType(
+                model.format == null -> this.dslMeta.registerType(
                     DslContainerTypeMeta(
                         absoluteName,
                         packageName,
@@ -107,7 +120,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
                 )
                 model.format == "date-time" -> {
                     val containedType = DslTypeName("java.time.ZonedDateTime")
-                    this.dslGeneratorMeta.registerType(
+                    this.dslMeta.registerType(
                         DslContainerTypeMeta(
                             absoluteName,
                             packageName,
@@ -139,7 +152,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
                         }
                     }
 
-                    this.dslGeneratorMeta.registerType(
+                    this.dslMeta.registerType(
                         DslSealedTypeMeta(
                             absoluteName,
                             packageName,
@@ -155,7 +168,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
 
         }
         else {
-            this.dslGeneratorMeta.registerType(
+            this.dslMeta.registerType(
                 DslInterfaceTypeMeta(
                     absoluteName,
                     packageName,
@@ -264,12 +277,12 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
             val kinds = model.vendorExtensions["x-kubernetes-group-version-kind"]!! as List<LinkedHashMap<*, *>>
 
             kinds.forEach { groupVersionKind ->
-                dslGeneratorMeta.registerKind(
+                dslMeta.registerKind(
                     DslKindMeta(
                         DslTypeName(absoluteName),
-                        groupVersionKind["group"] as String,
-                        groupVersionKind["kind"] as String,
-                        groupVersionKind["version"] as String
+                        groupVersionKind[this.dslMeta.platformSpecifics.groupKey] as String,
+                        groupVersionKind[this.dslMeta.platformSpecifics.kindKey] as String,
+                        groupVersionKind[this.dslMeta.platformSpecifics.versionKey] as String
                     )
                 )
             }

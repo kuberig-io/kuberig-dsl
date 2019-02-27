@@ -1,8 +1,7 @@
 package eu.rigeldev.kuberig.dsl.generator.output.kotlin
 
-import eu.rigeldev.kuberig.dsl.generator.input.DslMetaProducer
-import eu.rigeldev.kuberig.dsl.generator.input.swagger.SwaggerDslMetaProducer
 import eu.rigeldev.kuberig.dsl.generator.meta.*
+import eu.rigeldev.kuberig.dsl.generator.meta.types.*
 import eu.rigeldev.kuberig.dsl.generator.output.DslMetaConsumer
 import java.io.BufferedWriter
 import java.io.File
@@ -303,6 +302,8 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
             writer.newLine()
             writer.write("import eu.rigeldev.kuberig.dsl.DslResourceSink")
             writer.newLine()
+            writer.write("import eu.rigeldev.kuberig.dsl.DslResource")
+            writer.newLine()
             // import sub dsl roots
             container.subContainers.forEach { subName, subContainer ->
                 writer.write("import $absolutePackage.$subName.${subContainer.typeName()}")
@@ -343,13 +344,13 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
                 val kindType = kindMeta.kindType().typeShortName()
                 val kindMethodName = kindMeta.methodName()
 
-                writer.write("    fun $kindMethodName(name : String, init : ${kindType}.() -> Unit) {")
+                writer.write("    fun $kindMethodName(alias : String, init : ${kindType}.() -> Unit) {")
                 writer.newLine()
                 writer.write("        val dsl = ${kindType}()")
                 writer.newLine()
                 writer.write("        dsl.init()")
                 writer.newLine()
-                writer.write("        this.sink.add(name, dsl.toResource())")
+                writer.write("        this.sink.add(DslResource(alias, dsl.toValue()))")
                 writer.newLine()
                 writer.write("    }")
                 writer.newLine()
@@ -388,8 +389,6 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
             writer.newLine()
 
             this.writeImports(writer, typeMeta, "Dsl")
-            writer.write("import eu.rigeldev.kuberig.dsl.DslType")
-            writer.newLine()
             writer.write("import ${typeMeta.absoluteName}")
             writer.newLine()
 

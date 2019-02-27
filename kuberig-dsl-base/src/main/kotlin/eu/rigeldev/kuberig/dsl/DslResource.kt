@@ -1,8 +1,8 @@
 package eu.rigeldev.kuberig.dsl
 
 /**
- * A DSL resource map
+ * A DSL resource
  */
-interface DslResource {
-    fun name() : String
+class DslResource(val alias : String, val value : Any) {
+
 }

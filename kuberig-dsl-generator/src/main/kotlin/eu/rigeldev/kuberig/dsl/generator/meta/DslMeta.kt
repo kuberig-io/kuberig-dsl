@@ -1,6 +1,8 @@
 package eu.rigeldev.kuberig.dsl.generator.meta
 
-class DslMeta {
+import eu.rigeldev.kuberig.dsl.generator.meta.types.DslTypeMeta
+
+class DslMeta(val platformSpecifics: DslPlatformSpecifics) {
     val typeMeta = mutableMapOf<String, DslTypeMeta>()
 
     val kindMeta = mutableListOf<DslKindMeta>()

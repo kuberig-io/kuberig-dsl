@@ -16,7 +16,7 @@ class DslCodeGenerator(projectRootDirectory: File) {
     /**
      *
      */
-    private val sourceOutputDirectory = File(projectRootDirectory, "src/main/kotlin")
+    private val sourceOutputDirectory = File(projectRootDirectory, "build/generated-src/main/kotlin")
 
     fun generate() {
         println("processing...")
