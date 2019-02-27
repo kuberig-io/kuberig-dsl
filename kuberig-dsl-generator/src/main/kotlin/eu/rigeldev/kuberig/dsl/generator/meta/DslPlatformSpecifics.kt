@@ -7,4 +7,4 @@ open class DslPlatformSpecifics(
     val groupKey : String,
     val versionKey : String,
     val kindKey : String,
-    val packageNameStart : String)
+    val packageNameStarts : List<String>)

@@ -26,14 +26,25 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         val title = spec.info.title
         val version = spec.info.version
 
-        this.dslMeta = DslMeta(
-            DslPlatformSpecifics(
-                "group",
-                "version",
-                "kind",
-                "io.k8s"
+        if (spec.info.title.toLowerCase().contains("openshift")) {
+            this.dslMeta = DslMeta(
+                DslPlatformSpecifics(
+                    "Group",
+                    "Version",
+                    "Kind",
+                    listOf("io.k8s", "com.github")
+                )
             )
-        )
+        } else {
+            this.dslMeta = DslMeta(
+                DslPlatformSpecifics(
+                    "group",
+                    "version",
+                    "kind",
+                    listOf("io.k8s")
+                )
+            )
+        }
 
         println("$title ($version)...")
 

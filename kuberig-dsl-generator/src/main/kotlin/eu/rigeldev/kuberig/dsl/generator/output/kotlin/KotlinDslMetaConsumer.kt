@@ -10,11 +10,14 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
 
     private lateinit var classWriterProducer : KotlinClassWriterProducer
 
+    private lateinit var dslMeta : DslMeta
 
     private val listDslTypes = mutableListOf<DslListDslMeta>()
     private val mapDslTypes = mutableListOf<DslMapDslMeta>()
 
     override fun consume(dslMeta: DslMeta) {
+        this.dslMeta = dslMeta
+
         this.classWriterProducer = KotlinClassWriterProducer(sourceOutputDirectory)
 
         dslMeta.typeMeta.forEach(this::generateTypeClass)
@@ -87,10 +90,16 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
 
                 writer.newLine()
 
-                val addMethodName = if (listDslMeta.meta.name.endsWith("s") && listDslMeta.meta.name != "tls") {
+                val addMethodNameCandidate = if (listDslMeta.meta.name.endsWith("s") && listDslMeta.meta.name != "tls") {
                     listDslMeta.meta.name.substring(0, listDslMeta.meta.name.length - 1)
                 } else {
                     "item"
+                }
+                // TODO should check on all language keywords
+                val addMethodName = if (addMethodNameCandidate == "object") {
+                    "`$addMethodNameCandidate`"
+                } else {
+                    addMethodNameCandidate
                 }
 
                 if (listDslMeta.meta.itemType.requiresImport()) {
@@ -771,7 +780,7 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
 
                     writer.newLine()
 
-                    if (typeMeta.containedType.requiresImport() && typeMeta.containedType.absoluteName.startsWith("io.k8s")) {
+                    if (typeMeta.containedType.requiresImport() && this.dslMeta.isPlatformApiType(typeMeta.containedType)) {
                         writer.write("    fun ${typeMeta.name.toLowerCase()}(init : ${typeMeta.containedType.typeShortName()}.() -> Unit) : ${typeMeta.containedType.typeShortName()} {")
                         writer.newLine()
                         writer.write("        val attr = ${typeMeta.containedType.typeShortName()}()")
@@ -1027,7 +1036,7 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
         typesToImport.add("eu.rigeldev.kuberig.dsl.DslType")
 
         typeMeta.typeDependencies.forEach {
-            if (it.absoluteName.startsWith("io.k8s")) {
+            if (this.dslMeta.isPlatformApiType(it.absoluteName)) {
                 typesToImport.add("${it.absoluteName}$suffix")
             }
 

@@ -14,4 +14,14 @@ class DslMeta(val platformSpecifics: DslPlatformSpecifics) {
     fun registerKind(kindMeta : DslKindMeta) {
         this.kindMeta.add(kindMeta)
     }
+
+    fun isPlatformApiType(absoluteName : String) : Boolean {
+        return this.platformSpecifics
+            .packageNameStarts.stream()
+            .anyMatch { packageNameStart -> absoluteName.startsWith(packageNameStart) }
+    }
+
+    fun isPlatformApiType(dslTypeName: DslTypeName) : Boolean {
+        return this.isPlatformApiType(dslTypeName.absoluteName)
+    }
 }
