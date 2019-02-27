@@ -1,4 +1,7 @@
-package eu.rigeldev.kuberig.dsl.generator.meta
+package eu.rigeldev.kuberig.dsl.generator.meta.collections
+
+import eu.rigeldev.kuberig.dsl.generator.meta.DslTypeName
+import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslMapAttributeMeta
 
 class DslMapDslMeta(val type : DslTypeName,
                     val meta : DslMapAttributeMeta

@@ -1,6 +1,6 @@
 package eu.rigeldev.kuberig.dsl.generator.meta.types
 
-import eu.rigeldev.kuberig.dsl.generator.meta.DslAttributeMeta
+import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslAttributeMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.DslTypeName
 
 /**

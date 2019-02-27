@@ -1,6 +1,13 @@
 package eu.rigeldev.kuberig.dsl.generator.output.kotlin
 
 import eu.rigeldev.kuberig.dsl.generator.meta.*
+import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslListAttributeMeta
+import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslMapAttributeMeta
+import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslObjectAttributeMeta
+import eu.rigeldev.kuberig.dsl.generator.meta.collections.DslListDslMeta
+import eu.rigeldev.kuberig.dsl.generator.meta.collections.DslMapDslMeta
+import eu.rigeldev.kuberig.dsl.generator.meta.kinds.DslKindContainer
+import eu.rigeldev.kuberig.dsl.generator.meta.kinds.DslKindMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.types.*
 import eu.rigeldev.kuberig.dsl.generator.output.DslMetaConsumer
 import java.io.BufferedWriter

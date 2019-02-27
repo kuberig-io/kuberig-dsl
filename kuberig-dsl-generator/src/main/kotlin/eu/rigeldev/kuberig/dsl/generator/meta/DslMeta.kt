@@ -1,5 +1,6 @@
 package eu.rigeldev.kuberig.dsl.generator.meta
 
+import eu.rigeldev.kuberig.dsl.generator.meta.kinds.DslKindMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.types.DslTypeMeta
 
 class DslMeta(val platformSpecifics: DslPlatformSpecifics) {

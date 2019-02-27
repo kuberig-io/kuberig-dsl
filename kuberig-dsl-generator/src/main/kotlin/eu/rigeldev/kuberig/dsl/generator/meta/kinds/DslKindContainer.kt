@@ -1,4 +1,4 @@
-package eu.rigeldev.kuberig.dsl.generator.meta
+package eu.rigeldev.kuberig.dsl.generator.meta.kinds
 
 class DslKindContainer(val name : String) {
     val subContainers = mutableMapOf<String, DslKindContainer>()

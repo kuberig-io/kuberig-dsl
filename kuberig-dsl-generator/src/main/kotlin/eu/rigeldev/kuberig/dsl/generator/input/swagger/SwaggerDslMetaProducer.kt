@@ -2,6 +2,11 @@ package eu.rigeldev.kuberig.dsl.generator.input.swagger
 
 import eu.rigeldev.kuberig.dsl.generator.input.DslMetaProducer
 import eu.rigeldev.kuberig.dsl.generator.meta.*
+import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslAttributeMeta
+import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslListAttributeMeta
+import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslMapAttributeMeta
+import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslObjectAttributeMeta
+import eu.rigeldev.kuberig.dsl.generator.meta.kinds.DslKindMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.types.DslContainerTypeMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.types.DslInterfaceTypeMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.types.DslObjectTypeMeta

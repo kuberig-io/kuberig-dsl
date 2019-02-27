@@ -1,4 +1,6 @@
-package eu.rigeldev.kuberig.dsl.generator.meta
+package eu.rigeldev.kuberig.dsl.generator.meta.kinds
+
+import eu.rigeldev.kuberig.dsl.generator.meta.DslTypeName
 
 class DslKindMeta(val typeName : DslTypeName,
                   val group : String,
