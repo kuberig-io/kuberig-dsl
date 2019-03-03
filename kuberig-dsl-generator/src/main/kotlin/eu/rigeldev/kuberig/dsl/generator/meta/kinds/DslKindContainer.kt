@@ -13,8 +13,6 @@ class DslKindContainer(val name : String) {
         }
         containerNameParts.add(dslKindMeta.version)
 
-        println("Adding kind ${dslKindMeta.kind} to ${containerNameParts}")
-
         this.add(containerNameParts.iterator(), dslKindMeta)
     }
 

@@ -9,10 +9,17 @@ class DslListAttributeMeta(
     required : Boolean,
     val itemType : DslTypeName
 ) : DslAttributeMeta(name, description, required) {
-
     var listDslMeta : DslListDslMeta? = null
+
+    override fun absoluteAttributeDeclarationType(): DslTypeName {
+        return DslTypeName("List")
+    }
 
     override fun attributeDeclarationType(): String {
         return "List<${itemType.typeShortName()}>"
+    }
+
+    override fun toValueConstructorSuffix(): String {
+        return ".toValue()"
     }
 }

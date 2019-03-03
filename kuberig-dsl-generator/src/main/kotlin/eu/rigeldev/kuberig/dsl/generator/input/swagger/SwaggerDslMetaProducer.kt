@@ -28,9 +28,6 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
     override fun provide(): DslMeta {
         this.spec = SwaggerParser().read(swaggerFile.absolutePath)
 
-        val title = spec.info.title
-        val version = spec.info.version
-
         if (spec.info.title.toLowerCase().contains("openshift")) {
             this.dslMeta = DslMeta(
                 DslPlatformSpecifics(
@@ -51,16 +48,12 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
             )
         }
 
-        println("$title ($version)...")
-
         this.processDefinitions()
 
         return dslMeta
     }
 
     private fun processDefinitions() {
-
-        println("${spec.definitions.size}")
 
         spec.definitions.forEach { name, definition ->
             if (definition is ModelImpl) {
@@ -97,8 +90,6 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
     }
 
     private fun generateDslClassInternal(rawName: String, model: ModelImpl) {
-        println("Processing $rawName...")
-
         val absoluteName = rawName.replace('-', '.')
 
         val packageName = this.packageName(absoluteName)

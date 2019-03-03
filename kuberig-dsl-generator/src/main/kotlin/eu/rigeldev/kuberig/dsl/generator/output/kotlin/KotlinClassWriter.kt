@@ -18,35 +18,63 @@ import java.io.StringWriter
  * This helper does not make any assumptions on method call order for the output to be correct Kotlin code.
  */
 class KotlinClassWriter(private val typeName : DslTypeName,
-                        private val writer : BufferedWriter) : Closeable {
+                        classWriterProducer : KotlinClassWriterProducer,
+                        private val classType : String = "open class") : Closeable {
 
-    private val typeImports = mutableSetOf<DslTypeName>()
-    private val typeAnnotations = mutableSetOf<DslTypeName>()
-    private val typeDocumentation = mutableListOf<String>()
+    private val writer : BufferedWriter = classWriterProducer.classWriter(this.typeName.absoluteName)
 
-    private var interfaceType = ""
+    private val classDetails = mutableListOf<ClassDetail>()
 
-    private val typeAttributeDeclarations = mutableListOf<String>()
-    private val typeMethodDeclarations = mutableListOf<String>()
+    internal class ClassDetail(val typeName : DslTypeName,
+                               val classType : String = "open class") {
+        val typeImports = mutableSetOf<DslTypeName>()
+        val typeAnnotations = mutableSetOf<String>()
+        var typeDocumentation = ""
+
+        var interfaceType = ""
+
+        val typeConstructorParameters = mutableListOf<String>()
+        val typeAttributeDeclarations = mutableListOf<String>()
+        val typeMethodDeclarations = mutableListOf<String>()
+    }
+
+    private lateinit var current : ClassDetail
+
+    init {
+        this.push(this.typeName, this.classType)
+    }
+
+    fun push(typeName : DslTypeName, classType : String = "open class") {
+        current = ClassDetail(typeName, classType)
+        classDetails.add(current)
+    }
 
     fun typeImport(importType : String) {
         this.typeImport(DslTypeName(importType))
     }
 
     fun typeImport(importType : DslTypeName) {
-        this.typeImports.add(importType)
+        this.classDetails.first().typeImports.add(importType)
     }
 
-    fun typeAnnotation(annotationType : String) {
-        this.typeAnnotation(DslTypeName(annotationType))
+    fun typeAnnotation(annotationType : String, annotationValue : String = "") {
+        this.typeAnnotation(DslTypeName(annotationType), annotationValue)
     }
 
-    fun typeAnnotation(annotationType : DslTypeName) {
+    fun typeAnnotation(annotationType : DslTypeName, annotationValue : String = "") {
         this.typeImport(annotationType)
-        this.typeAnnotations.add(annotationType)
+        if (annotationValue != "") {
+            this.current.typeAnnotations.add(annotationValue)
+        } else {
+            this.current.typeAnnotations.add("@" + annotationType.typeShortName())
+        }
     }
 
-    fun writeLine(lineContents : String) {
+    fun typeDocumentation(documentation : String) {
+        this.current.typeDocumentation = this.writeDoc(documentation)
+    }
+
+    private fun writeLine(lineContents : String) {
         this.writer.write(lineContents)
         this.writer.newLine()
     }
@@ -59,47 +87,114 @@ class KotlinClassWriter(private val typeName : DslTypeName,
         }
     }
 
+    private fun typeConstructorParameter(modifiers : List<String>,
+                                         attributeName : String,
+                                         typeDeclaration : String,
+                                         defaultValue : String,
+                                         nullable : Boolean = false) {
+        this.current.typeConstructorParameters.add(
+            declaration(
+                modifiers,
+                attributeName,
+                typeDeclaration,
+                defaultValue,
+                "",
+                nullable
+            )
+        )
+    }
+
+    fun typeConstructorParameter(modifiers : List<String>,
+                                 attributeName : String,
+                                 declarationType : DslTypeName,
+                                 defaultValue : String = "",
+                                 nullable : Boolean = false,
+                                 declarationTypeOverride : String ? = null) {
+        this.typeImport(declarationType)
+
+        this.typeConstructorParameter(
+            modifiers,
+            attributeName,
+            declarationTypeOverride ?: declarationType.typeShortName(),
+            defaultValue,
+            nullable
+        )
+    }
+
     fun typeInterface(interfaceDeclaration : String,
-                              declarationTypes : List<String>) {
+                      declarationTypes : List<String>) {
         declarationTypes.forEach(this::typeImport)
 
-        this.interfaceType = interfaceDeclaration
+        this.current.interfaceType = interfaceDeclaration
+    }
+
+    private fun declaration(modifiers : List<String>,
+                            attributeName : String,
+                            typeDeclaration : String,
+                            defaultValue : String,
+                            documentation : String,
+                            nullable : Boolean) : String {
+        val modifierOutput = modifiers.joinToString(" ")
+
+        val declarationWriter = StringWriter()
+        val buffered = BufferedWriter(declarationWriter)
+
+        buffered.write(this.writeDoc(documentation, "    "))
+        buffered.newLine()
+
+        buffered.append("    ")
+        buffered.append(modifierOutput)
+        buffered.append(" ")
+        buffered.append(this.kotlinSafe(attributeName))
+        buffered.append(" : ")
+        buffered.append(typeDeclaration)
+        if (nullable) {
+            buffered.append("?")
+        }
+
+        if (defaultValue != "") {
+            buffered.append(" = ")
+            buffered.append(defaultValue)
+        }
+
+        buffered.close()
+
+        return declarationWriter.toString()
     }
 
     private fun typeAttribute(modifiers : List<String>,
                               attributeName : String,
                               typeDeclaration : String,
-                              defaultValue : String) {
-        val modifierOutput = modifiers.joinToString(" ")
-
-        val declarationWriter = StringWriter()
-
-        declarationWriter.append("    ")
-        declarationWriter.append(modifierOutput)
-        declarationWriter.append(" ")
-        declarationWriter.append(this.kotlinSafe(attributeName))
-        declarationWriter.append(" : ")
-        declarationWriter.append(typeDeclaration)
-
-        if (defaultValue != "") {
-            declarationWriter.append(" = ")
-            declarationWriter.append(defaultValue)
-        }
-
-        this.typeAttributeDeclarations.add(declarationWriter.toString())
+                              defaultValue : String,
+                              documentation : String,
+                              nullable : Boolean) {
+        this.current.typeAttributeDeclarations.add(
+            declaration(
+                modifiers,
+                attributeName,
+                typeDeclaration,
+                defaultValue,
+                documentation,
+                nullable
+            )
+        )
     }
 
     fun typeAttribute(modifiers : List<String>,
                       attributeName : String,
                       declarationType : DslTypeName,
-                      defaultValue : String = "") {
+                      defaultValue : String = "",
+                      documentation : String = "",
+                      nullable : Boolean = false) {
         this.typeImport(declarationType)
 
         this.typeAttribute(
             modifiers,
             attributeName,
             declarationType.typeShortName(),
-            defaultValue
+            defaultValue,
+            documentation,
+            nullable
         )
     }
 
@@ -107,7 +202,9 @@ class KotlinClassWriter(private val typeName : DslTypeName,
                           attributeName : String,
                           declarationType : DslTypeName,
                           declarationItemType : DslTypeName,
-                          defaultValue : String) {
+                          defaultValue : String,
+                          documentation : String = "",
+                          nullable : Boolean = false) {
         this.typeImport(declarationType)
         this.typeImport(declarationItemType)
 
@@ -118,7 +215,9 @@ class KotlinClassWriter(private val typeName : DslTypeName,
             modifiers,
             attributeName,
             "$listType<$listItemType>",
-            defaultValue
+            defaultValue,
+            documentation,
+            nullable
         )
     }
 
@@ -127,7 +226,9 @@ class KotlinClassWriter(private val typeName : DslTypeName,
                          declarationType : DslTypeName,
                          declarationKeyType : DslTypeName,
                          declarationItemType : DslTypeName,
-                         defaultValue : String) {
+                         defaultValue : String,
+                         documentation : String = "",
+                         nullable : Boolean = false) {
         this.typeImport(declarationType)
         this.typeImport(declarationKeyType)
         this.typeImport(declarationItemType)
@@ -140,7 +241,9 @@ class KotlinClassWriter(private val typeName : DslTypeName,
             modifiers,
             attributeName,
             "$mapType<$mapKeyType, $mapItemType>",
-            defaultValue
+            defaultValue,
+            documentation,
+            nullable
         )
     }
 
@@ -149,13 +252,16 @@ class KotlinClassWriter(private val typeName : DslTypeName,
                    methodParameters : String = "",
                    methodReturnType : String = "",
                    methodCode : List<String>,
-                   methodTypeDependencies : List<String> = emptyList()) {
+                   methodTypeDependencies : List<String> = emptyList(),
+                   methodDocumentation : String = "") {
         methodTypeDependencies.forEach(this::typeImport)
 
 
         val methodWriter = StringWriter()
         val buffered = BufferedWriter(methodWriter)
 
+        buffered.write(this.writeDoc(methodDocumentation, "    "))
+        buffered.newLine()
         buffered.write("    ")
         if (modifiers.isNotEmpty()) {
             buffered.write(modifiers.joinToString(" "))
@@ -183,60 +289,139 @@ class KotlinClassWriter(private val typeName : DslTypeName,
         buffered.newLine()
 
         buffered.close()
-        this.typeMethodDeclarations.add(methodWriter.toString())
+        this.current.typeMethodDeclarations.add(methodWriter.toString())
     }
 
     override fun close() {
-        val packageName = this.typeName.packageName()
-        if (packageName != "") {
-            this.writeLine("package $packageName")
-        }
+        val classDetailsIterator = this.classDetails.iterator()
 
-        this.writer.newLine()
+        var first = true
+        while (classDetailsIterator.hasNext()) {
+            val classDetail = classDetailsIterator.next()
 
-        this.typeImports.forEach {
-            if (it.requiresImport() && it.packageName() != this.typeName.packageName()) {
-                this.writeLine("import ${it.absoluteName}")
+            if (first) {
+                val packageName = classDetail.typeName.packageName()
+                if (packageName != "") {
+                    this.writeLine("package $packageName")
+
+                    this.writer.newLine()
+                }
+
+                first = false
             }
-        }
 
-        this.writer.newLine()
-
-        this.typeDocumentation.forEach(this::writeLine)
-        this.writer.newLine()
-
-        this.typeAnnotations.forEach {
-            this.writeLine("@${it.typeShortName()}")
-        }
-
-        this.writer.write("open class ${typeName.typeShortName()}")
-
-        if (this.interfaceType != "") {
-            this.writer.write(" : ${this.interfaceType}")
-        }
-
-        this.writer.write(" {")
-        this.writer.newLine()
-
-        this.writer.newLine()
-
-        this.typeAttributeDeclarations.forEach{
-            this.writeLine(it)
+            classDetail.typeImports.forEach {
+                if (it.requiresImport()) {
+                    this.writeLine("import ${it.absoluteName}")
+                }
+            }
 
             this.writer.newLine()
-        }
-        this.writer.newLine()
 
-        this.typeMethodDeclarations.forEach {
-            this.writeLine(it)
-        }
-        this.writer.newLine()
+            if (classDetail.typeDocumentation != "") {
+                this.writeLine(classDetail.typeDocumentation)
+            }
 
-        this.writeLine("}")
+            classDetail.typeAnnotations.forEach(this::writeLine)
+
+            this.writer.write("${classDetail.classType} ${classDetail.typeName.typeShortName()}")
+
+            if (classDetail.typeConstructorParameters.isNotEmpty()) {
+                this.writer.write("(")
+                this.writer.newLine()
+
+                val constructorParamIterator = classDetail.typeConstructorParameters.iterator()
+
+                while (constructorParamIterator.hasNext()) {
+                    val nextConstructorParameter = constructorParamIterator.next()
+
+                    this.writer.write(nextConstructorParameter)
+
+                    if (constructorParamIterator.hasNext()) {
+                        this.writer.write(",")
+                        this.writer.newLine()
+                    }
+                }
+
+                this.writer.write(")")
+            }
+
+            if (classDetail.interfaceType != "") {
+                this.writer.write(" : ${classDetail.interfaceType}")
+            }
+
+            if (classDetail.typeAttributeDeclarations.isNotEmpty() || classDetail.typeMethodDeclarations.isNotEmpty()) {
+                this.writer.write(" {")
+                this.writer.newLine()
+
+                this.writer.newLine()
+
+                classDetail.typeAttributeDeclarations.forEach(this::writeLine)
+                this.writer.newLine()
+
+                classDetail.typeMethodDeclarations.forEach {
+                    this.writeLine(it)
+                }
+                this.writer.newLine()
+
+                this.writeLine("}")
+            } else {
+                this.writer.newLine()
+            }
+
+        }
 
         this.writer.flush()
         this.writer.close()
     }
 
+    private fun writeDoc(documentation : String, prefix : String = "") : String {
+        val docWriter = StringWriter()
+        val buffered = BufferedWriter(docWriter)
 
+        if (documentation != "") {
+            buffered.write(prefix)
+            buffered.write("/**")
+            buffered.newLine()
+
+            val docSplitsIt = documentation.split(" ").iterator()
+
+            val lineLength = 120
+            var lineBuffer = StringBuffer()
+            lineBuffer.append(prefix)
+            lineBuffer.append(" *")
+
+            while (docSplitsIt.hasNext()) {
+                val originalDocSplit = docSplitsIt.next()
+                val currentDocSplit = if (originalDocSplit.startsWith("http")){
+                    "[$originalDocSplit]($originalDocSplit)"
+                } else {
+                    originalDocSplit.replace("*", "{@literal *}")
+                }
+
+                if (lineBuffer.length + 1 + currentDocSplit.length > lineLength) {
+                    // current doc split does not fit on current line
+                    buffered.write(lineBuffer.toString())
+                    buffered.newLine()
+
+                    lineBuffer = StringBuffer()
+                    lineBuffer.append(prefix)
+                    lineBuffer.append(" *")
+                }
+
+                lineBuffer.append(" ")
+                lineBuffer.append(currentDocSplit)
+
+            }
+
+            buffered.write(lineBuffer.toString())
+            buffered.newLine()
+
+            buffered.write(prefix)
+            buffered.write(" **/")
+        }
+
+        buffered.close()
+        return docWriter.toString()
+    }
 }

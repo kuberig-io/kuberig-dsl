@@ -6,12 +6,7 @@ import eu.rigeldev.kuberig.dsl.generator.meta.collections.DslListDslMeta
 class KotlinListDslTypeGenerator(private val classWriterProducer : KotlinClassWriterProducer) {
 
     fun generateListDslType(listDslMeta: DslListDslMeta) {
-
-        val typeName = listDslMeta.declarationType()
-
-        val writer = this.classWriterProducer.classWriter(typeName.absoluteName)
-
-        KotlinClassWriter(typeName, writer).use { classWriter ->
+        KotlinClassWriter(listDslMeta.declarationType(), this.classWriterProducer).use { classWriter ->
             val resultListItemType = listDslMeta.meta.itemType.typeShortName()
 
             classWriter.typeAnnotation("javax.annotation.processing.Generated")

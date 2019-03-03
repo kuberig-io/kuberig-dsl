@@ -1,5 +1,7 @@
 package eu.rigeldev.kuberig.dsl.generator.meta
 
+import eu.rigeldev.kuberig.dsl.generator.meta.collections.DslListDslMeta
+import eu.rigeldev.kuberig.dsl.generator.meta.collections.DslMapDslMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.kinds.DslKindMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.types.DslTypeMeta
 
@@ -7,6 +9,9 @@ class DslMeta(val platformSpecifics: DslPlatformSpecifics) {
     val typeMeta = mutableMapOf<String, DslTypeMeta>()
 
     val kindMeta = mutableListOf<DslKindMeta>()
+
+    val listDslTypes = mutableListOf<DslListDslMeta>()
+    val mapDslTypes = mutableListOf<DslMapDslMeta>()
 
     fun registerType(typeMeta : DslTypeMeta) {
         this.typeMeta[typeMeta.absoluteName] = typeMeta

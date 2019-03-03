@@ -46,4 +46,12 @@ class DslKindMeta(val typeName : DslTypeName,
         return kind.substring(0, splitIndex).toLowerCase() + kind.substring(splitIndex)
     }
 
+    fun apiVersion() : String {
+        return if (this.group != "") {
+            "$group/$version"
+        } else {
+            version
+        }
+    }
+
 }

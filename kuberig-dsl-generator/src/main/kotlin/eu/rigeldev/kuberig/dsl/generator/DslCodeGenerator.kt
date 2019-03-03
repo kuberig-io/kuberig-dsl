@@ -19,8 +19,6 @@ class DslCodeGenerator(projectRootDirectory: File) {
     private val sourceOutputDirectory = File(projectRootDirectory, "build/generated-src/main/kotlin")
 
     fun generate() {
-        println("processing...")
-
         // input for dsl meta
         val dslMetaProducer : DslMetaProducer = SwaggerDslMetaProducer(swaggerFile)
 
@@ -31,8 +29,6 @@ class DslCodeGenerator(projectRootDirectory: File) {
         val kotlinDslMetaConsumer : DslMetaConsumer = KotlinDslMetaConsumer(sourceOutputDirectory)
 
         kotlinDslMetaConsumer.consume(dslMeta)
-
-        println("processed.")
     }
 }
 

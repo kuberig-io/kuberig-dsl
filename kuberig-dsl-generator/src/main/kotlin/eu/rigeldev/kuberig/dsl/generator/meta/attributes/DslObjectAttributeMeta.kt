@@ -8,8 +8,19 @@ class DslObjectAttributeMeta(
     required: Boolean,
     val absoluteType: DslTypeName
 ) : DslAttributeMeta(name, description, required) {
-
     override fun attributeDeclarationType(): String {
         return this.absoluteType.typeShortName()
+    }
+
+    override fun absoluteAttributeDeclarationType(): DslTypeName {
+        return this.absoluteType
+    }
+
+    override fun toValueConstructorSuffix(): String {
+        return if (this.absoluteType.requiresImport()) {
+            "?.toValue()"
+        } else {
+            ""
+        }
     }
 }
