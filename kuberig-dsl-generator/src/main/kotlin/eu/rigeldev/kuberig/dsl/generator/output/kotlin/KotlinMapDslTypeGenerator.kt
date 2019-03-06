@@ -18,39 +18,27 @@ class KotlinMapDslTypeGenerator(private val classWriterProducer : KotlinClassWri
                 listOf("eu.rigeldev.kuberig.dsl.DslType", mapDslMeta.meta.itemType.absoluteName)
             )
 
-            val complexType = mapDslMeta.meta.itemType.requiresImport()
-
-            val mapItemTypeSuffix = if (complexType) {
-                "Dsl"
-            } else {
-                ""
-            }
-
-            val mapItemType = "${mapDslMeta.meta.itemType.typeShortName()}$mapItemTypeSuffix"
+            val mapItemType = mapDslMeta.dslItemType().typeShortName()
 
             classWriter.mapTypeAttribute(
                 listOf("private", "val"),
                 "map",
                 DslTypeName("MutableMap"),
                 DslTypeName("String"),
-                DslTypeName(mapDslMeta.meta.itemType.absoluteName + mapItemTypeSuffix),
+                DslTypeName(mapDslMeta.dslItemType().absoluteName),
                 "mutableMapOf()"
             )
 
-            val addMethodName = if (mapDslMeta.meta.name.endsWith("s")) {
-                mapDslMeta.meta.name.substring(0, mapDslMeta.meta.name.length - 1)
-            } else {
-                "item"
-            }
+            val addMethodName = mapDslMeta.addMethodName()
 
-            if (complexType) {
+            if (mapDslMeta.complexItemType()) {
                 classWriter.typeMethod(
                     methodName = addMethodName,
-                    methodParameters = "${addMethodName}Key : String, init : $mapItemType.() -> Unit",
+                    methodParameters = "key : String, init : $mapItemType.() -> Unit",
                     methodCode = listOf(
                         "val itemValue = $mapItemType()",
                         "itemValue.init()",
-                        "this.map[${addMethodName}Key] = itemValue"
+                        "this.map[key] = itemValue"
                     )
                 )
 
@@ -74,9 +62,9 @@ class KotlinMapDslTypeGenerator(private val classWriterProducer : KotlinClassWri
             else {
                 classWriter.typeMethod(
                     methodName = addMethodName,
-                    methodParameters = "${addMethodName}Key : String, ${addMethodName}Value : $mapItemType",
+                    methodParameters = "key : String, value : $mapItemType",
                     methodCode = listOf(
-                        "this.map[${addMethodName}Key] = ${addMethodName}Value"
+                        "this.map[key] = value"
                     )
                 )
 

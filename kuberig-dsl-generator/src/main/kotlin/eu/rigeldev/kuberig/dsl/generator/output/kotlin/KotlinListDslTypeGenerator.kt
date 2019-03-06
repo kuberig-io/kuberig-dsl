@@ -17,33 +17,19 @@ class KotlinListDslTypeGenerator(private val classWriterProducer : KotlinClassWr
                 listOf("eu.rigeldev.kuberig.dsl.DslType", listDslMeta.meta.itemType.absoluteName)
             )
 
-            val complexType = listDslMeta.meta.itemType.requiresImport()
-
-            val listItemTypeSuffix = if (complexType) {
-                "Dsl"
-            } else {
-                ""
-            }
-
-            val listItemType = "${listDslMeta.meta.itemType.typeShortName()}$listItemTypeSuffix"
+            val listItemType = listDslMeta.dslItemType().typeShortName()
 
             classWriter.listTypeAttribute(
                 listOf("private", "val"),
                 "list",
                 DslTypeName("MutableList"),
-                DslTypeName(listDslMeta.meta.itemType.absoluteName + listItemTypeSuffix),
+                DslTypeName(listDslMeta.dslItemType().absoluteName),
                 "mutableListOf()"
             )
 
-            // check if attribute name this list is for is plural
-            // most likely this does not cover all non-plural cases (to-be-verified)
-            val addMethodName = if (listDslMeta.meta.name.endsWith("s") && listDslMeta.meta.name != "tls") {
-                listDslMeta.meta.name.substring(0, listDslMeta.meta.name.length - 1)
-            } else {
-                "item"
-            }
+            val addMethodName = listDslMeta.addMethodName()
 
-            if (complexType) {
+            if (listDslMeta.complexItemType()) {
                 classWriter.typeMethod(
                     methodName = addMethodName,
                     methodParameters = "init : $listItemType.() -> Unit",

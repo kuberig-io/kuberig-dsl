@@ -5,8 +5,6 @@ import eu.rigeldev.kuberig.dsl.generator.meta.DslTypeName
 import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslListAttributeMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslMapAttributeMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslObjectAttributeMeta
-import eu.rigeldev.kuberig.dsl.generator.meta.collections.DslListDslMeta
-import eu.rigeldev.kuberig.dsl.generator.meta.collections.DslMapDslMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.kinds.DslKindMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.types.*
 import java.io.StringWriter
@@ -142,9 +140,9 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
             } else {
                 classWriter.typeMethod(
                     methodName = typeMeta.name.toLowerCase(),
-                    methodParameters = "value : ${typeMeta.containedType.typeShortName()}",
+                    methodParameters = "contained : ${typeMeta.containedType.typeShortName()}",
                     methodCode = listOf(
-                        "this.value = value"
+                        "this.value = contained"
                     )
                 )
             }
@@ -178,8 +176,7 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
             typeMeta.attributes.minus(attributeIgnores).forEach { attributeName, attributeMeta ->
 
                 if (attributeMeta is DslListAttributeMeta) {
-                    val listDslMeta = DslListDslMeta(DslTypeName(typeMeta.absoluteName), attributeMeta)
-                    this.dslMeta.listDslTypes.add(listDslMeta)
+                    val listDslMeta = this.dslMeta.getListDslMeta(typeMeta, attributeMeta)
 
                     classWriter.typeAttribute(
                         listOf("private", "val"),
@@ -189,19 +186,48 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                         attributeMeta.description
                     )
 
-                    classWriter.typeMethod(
-                        methodDocumentation = attributeMeta.description,
-                        methodName = attributeName,
-                        methodParameters = "init: ${listDslMeta.declarationType().typeShortName()}.() -> Unit",
-                        methodCode = listOf(
-                            "this.$attributeName.init()"
+                    if (listDslMeta.plural) {
+
+                        classWriter.typeMethod(
+                            methodDocumentation = attributeMeta.description,
+                            methodName = attributeName,
+                            methodParameters = "init: ${listDslMeta.declarationType().typeShortName()}.() -> Unit",
+                            methodCode = listOf(
+                                "this.$attributeName.init()"
+                            )
                         )
-                    )
+                    }
+                    else {
+                        val listItemType = listDslMeta.dslItemType()
+
+                        if (listDslMeta.complexItemType()) {
+                            classWriter.typeMethod(
+                                methodName = attributeName,
+                                methodParameters = "init : ${listItemType.typeShortName()}.() -> Unit",
+                                methodCode = listOf(
+                                    "this.${attributeName}.item(init)"
+                                ),
+                                methodTypeDependencies = listOf(
+                                    listItemType.absoluteName
+                                )
+                            )
+                        }
+                        else {
+                            classWriter.typeMethod(
+                                methodDocumentation = attributeMeta.description,
+                                methodName = attributeName,
+                                methodParameters = "value : ${listItemType.typeShortName()}",
+                                methodCode = listOf(
+                                    "this.${attributeName}.item(value)"
+                                )
+                            )
+                        }
+
+                    }
 
                 }
                 else if (attributeMeta is DslMapAttributeMeta) {
-                    val mapDslMeta = DslMapDslMeta(DslTypeName(typeMeta.absoluteName), attributeMeta)
-                    this.dslMeta.mapDslTypes.add(mapDslMeta)
+                    val mapDslMeta = this.dslMeta.getMapDslMeta(typeMeta, attributeMeta)
 
                     classWriter.typeAttribute(
                         listOf("private", "val"),
@@ -211,14 +237,41 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                         attributeMeta.description
                     )
 
-                    classWriter.typeMethod(
-                        methodDocumentation = attributeMeta.description,
-                        methodName = attributeName,
-                        methodParameters = "init: ${mapDslMeta.declarationType().typeShortName()}.() -> Unit",
-                        methodCode = listOf(
-                            "this.$attributeName.init()"
+                    if (mapDslMeta.plural) {
+                        classWriter.typeMethod(
+                            methodDocumentation = attributeMeta.description,
+                            methodName = attributeName,
+                            methodParameters = "init: ${mapDslMeta.declarationType().typeShortName()}.() -> Unit",
+                            methodCode = listOf(
+                                "this.$attributeName.init()"
+                            )
                         )
-                    )
+                    }
+                    else {
+                        val mapItemType = mapDslMeta.dslItemType()
+
+                        if (mapDslMeta.complexItemType()) {
+                            classWriter.typeMethod(
+                                methodName = attributeName,
+                                methodParameters = "key : String, init : ${mapItemType.typeShortName()}.() -> Unit",
+                                methodCode = listOf(
+                                    "this.${attributeName}.item(key, init)"
+                                ),
+                                methodTypeDependencies = listOf(
+                                    mapItemType.absoluteName
+                                )
+                            )
+                        } else {
+                            classWriter.typeMethod(
+                                methodDocumentation = attributeMeta.description,
+                                methodName = attributeName,
+                                methodParameters = "key : String, value : ${mapItemType.typeShortName()}",
+                                methodCode = listOf(
+                                    "this.${attributeName}.item(key, value)"
+                                )
+                            )
+                        }
+                    }
                 }
                 else if (attributeMeta is DslObjectAttributeMeta) {
 
@@ -232,16 +285,34 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                             nullable = true
                         )
 
-                        classWriter.typeMethod(
-                            methodDocumentation = attributeMeta.description,
-                            methodName = attributeName,
-                            methodParameters = "init : ${attributeMeta.attributeDeclarationType()}Dsl.() -> Unit",
-                            methodCode = listOf(
-                                "val attr = ${attributeMeta.attributeDeclarationType()}Dsl()",
-                                "attr.init()",
-                                "this.$attributeName = attr"
+                        val attributeTypeMeta = this.dslMeta.typeMeta[attributeMeta.absoluteType.absoluteName]
+
+                        if (attributeTypeMeta is DslSealedTypeMeta) {
+                            attributeTypeMeta.sealedTypes.forEach { name, typeName ->
+                                classWriter.typeMethod(
+                                    methodDocumentation = attributeMeta.description,
+                                    methodName = attributeName,
+                                    methodParameters = "$attributeName : ${typeName.typeShortName()}",
+                                    methodCode = listOf(
+                                        "this.$attributeName = ${attributeMeta.attributeDeclarationType()}Dsl()",
+                                        "this.$attributeName!!.value($attributeName)"
+                                    )
+                                )
+                            }
+                        }
+                        else {
+
+                            classWriter.typeMethod(
+                                methodDocumentation = attributeMeta.description,
+                                methodName = attributeName,
+                                methodParameters = "init : ${attributeMeta.attributeDeclarationType()}Dsl.() -> Unit",
+                                methodCode = listOf(
+                                    "val attr = ${attributeMeta.attributeDeclarationType()}Dsl()",
+                                    "attr.init()",
+                                    "this.$attributeName = attr"
+                                )
                             )
-                        )
+                        }
 
                     } else {
 

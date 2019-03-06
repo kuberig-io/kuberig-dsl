@@ -1,6 +1,5 @@
 package eu.rigeldev.kuberig.dsl.generator.meta.attributes
 
-import eu.rigeldev.kuberig.dsl.generator.meta.collections.DslListDslMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.DslTypeName
 
 class DslListAttributeMeta(
@@ -9,7 +8,6 @@ class DslListAttributeMeta(
     required : Boolean,
     val itemType : DslTypeName
 ) : DslAttributeMeta(name, description, required) {
-    var listDslMeta : DslListDslMeta? = null
 
     override fun absoluteAttributeDeclarationType(): DslTypeName {
         return DslTypeName("List")
