@@ -1,4 +1,7 @@
 # kuberig-dsl
+
+[![pipeline status](https://gitlab.com/kuberig/kuberig-dsl/badges/master/pipeline.svg)][https://gitlab.com/kuberig/kuberig-dsl/commits/master]
+
 KubeRig DSL generation.
 
 Generates a Kotlin DSL based on the swagger api spec of Kubernetes and OpenShift.
