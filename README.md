@@ -1,6 +1,6 @@
 # kuberig-dsl
 
-[![pipeline status](https://gitlab.com/kuberig/kuberig-dsl/badges/master/pipeline.svg)][https://gitlab.com/kuberig/kuberig-dsl/commits/master]
+![pipeline status](https://gitlab.com/kuberig/kuberig-dsl/badges/master/pipeline.svg)
 
 KubeRig DSL generation.
 
