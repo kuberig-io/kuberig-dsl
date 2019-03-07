@@ -9,7 +9,7 @@ class KotlinListDslTypeGenerator(private val classWriterProducer : KotlinClassWr
         KotlinClassWriter(listDslMeta.declarationType(), this.classWriterProducer).use { classWriter ->
             val resultListItemType = listDslMeta.meta.itemType.typeShortName()
 
-            classWriter.typeAnnotation("javax.annotation.processing.Generated")
+            classWriter.typeAnnotation("javax.annotation.Generated")
             classWriter.typeAnnotation("eu.rigeldev.kuberig.dsl.KubeRigDslMarker")
 
             classWriter.typeInterface(

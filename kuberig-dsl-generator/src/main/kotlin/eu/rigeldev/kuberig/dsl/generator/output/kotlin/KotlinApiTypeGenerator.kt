@@ -26,7 +26,7 @@ class KotlinApiTypeGenerator(private val classWriterProducer : KotlinClassWriter
         kotlinClassWriter.use {classWriter ->
             classWriter.typeDocumentation(typeMeta.description)
 
-            classWriter.typeAnnotation("javax.annotation.processing.Generated")
+            classWriter.typeAnnotation("javax.annotation.Generated")
 
             typeMeta.attributes.minus("status").forEach { attributeName, attributeMeta ->
 
@@ -79,7 +79,7 @@ class KotlinApiTypeGenerator(private val classWriterProducer : KotlinClassWriter
 
             classWriter.typeDocumentation(typeMeta.description)
 
-            classWriter.typeAnnotation("javax.annotation.processing.Generated")
+            classWriter.typeAnnotation("javax.annotation.Generated")
 
             classWriter.typeImport(serializerType)
             classWriter.typeAnnotation(
@@ -97,7 +97,7 @@ class KotlinApiTypeGenerator(private val classWriterProducer : KotlinClassWriter
         // the json serializer
         val kotlinSerializerWriter = KotlinClassWriter(serializerType, this.classWriterProducer)
         kotlinSerializerWriter.use { serializerWriter ->
-            serializerWriter.typeAnnotation("javax.annotation.processing.Generated")
+            serializerWriter.typeAnnotation("javax.annotation.Generated")
 
             serializerWriter.typeInterface(
                 "JsonSerializer<${typeMeta.name}>()",
@@ -135,7 +135,7 @@ class KotlinApiTypeGenerator(private val classWriterProducer : KotlinClassWriter
         kotlinClassWriter.use { classWriter ->
             classWriter.typeDocumentation(typeMeta.description)
 
-            classWriter.typeAnnotation("javax.annotation.processing.Generated")
+            classWriter.typeAnnotation("javax.annotation.Generated")
 
             classWriter.typeImport(serializerType)
             classWriter.typeAnnotation(
@@ -149,7 +149,7 @@ class KotlinApiTypeGenerator(private val classWriterProducer : KotlinClassWriter
 
                 classWriter.push(subTypeName)
 
-                classWriter.typeAnnotation("javax.annotation.processing.Generated")
+                classWriter.typeAnnotation("javax.annotation.Generated")
 
                 classWriter.typeInterface(
                     "${typeMeta.name}()",
@@ -167,7 +167,7 @@ class KotlinApiTypeGenerator(private val classWriterProducer : KotlinClassWriter
         // the json serializer
         val kotlinSerializerWriter = KotlinClassWriter(serializerType, this.classWriterProducer)
         kotlinSerializerWriter.use { serializerWriter ->
-            serializerWriter.typeAnnotation("javax.annotation.processing.Generated")
+            serializerWriter.typeAnnotation("javax.annotation.Generated")
 
             serializerWriter.typeInterface(
                 "JsonSerializer<${typeMeta.name}>()",
@@ -211,7 +211,7 @@ class KotlinApiTypeGenerator(private val classWriterProducer : KotlinClassWriter
         kotlinClassWriter.use { classWriter ->
             classWriter.typeDocumentation(typeMeta.description)
 
-            classWriter.typeAnnotation("javax.annotation.processing.Generated")
+            classWriter.typeAnnotation("javax.annotation.Generated")
         }
     }
 
