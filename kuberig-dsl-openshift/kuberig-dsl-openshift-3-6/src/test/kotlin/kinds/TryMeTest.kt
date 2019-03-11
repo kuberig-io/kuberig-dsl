@@ -8,32 +8,35 @@ class TryMeTest {
     fun tryMe() {
         val dslRoot = DslKindsRoot(YamlOutputSink())
 
-        dslRoot.v1.deploymentConfig("nginx") {
-            metadata {
-                name = "nginx"
-            }
-            spec {
-                template {
+        dslRoot.apply {
+            v1 {
+                deploymentConfig("nginx") {
                     metadata {
-                        name = "nginx"
+                        name("nginx")
                     }
                     spec {
-                        containers {
-                            container {
-                                image = "nginx"
-                                ports {
-                                    port {
-                                        containerPort = 80
+                        template {
+                            metadata {
+                                name("nginx")
+                            }
+                            spec {
+                                containers {
+                                    container {
+                                        image("nginx")
+                                        ports {
+                                            port {
+                                                containerPort(80)
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
+                        replicas(1)
                     }
                 }
-                replicas = 1
             }
         }
-
     }
 
 }

@@ -317,7 +317,7 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                     } else {
 
                         classWriter.typeAttribute(
-                            listOf("var"),
+                            listOf("private", "var"),
                             attributeName,
                             attributeMeta.absoluteType,
                             "null",

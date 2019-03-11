@@ -10,27 +10,27 @@ class TryMeTest {
 
         dslRoot.apps.v1.deployment("nginx") {
             metadata {
-                name = "nginx"
+                name("nginx")
             }
             spec {
                 template {
                     metadata {
-                        name = "nginx"
+                        name("nginx")
                     }
                     spec {
                         containers {
                             container {
-                                image = "nginx"
+                                image("nginx")
                                 ports {
                                     port {
-                                        containerPort = 80
+                                        containerPort(80)
                                     }
                                 }
                             }
                         }
                     }
                 }
-                replicas = 1
+                replicas(1)
             }
         }
 
