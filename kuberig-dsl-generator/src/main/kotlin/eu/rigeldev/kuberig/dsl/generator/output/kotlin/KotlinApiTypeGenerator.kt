@@ -111,7 +111,11 @@ class KotlinApiTypeGenerator(private val classWriterProducer : KotlinClassWriter
             serializerWriter.typeMethod(
                 modifiers = listOf("override"),
                 methodName = "serialize",
-                methodParameters = "value: ${typeMeta.name}?, gen: JsonGenerator?, serializers: SerializerProvider?",
+                methodParameters = listOf(
+                    Pair("value", "${typeMeta.name}?"),
+                    Pair("gen", "JsonGenerator?"),
+                    Pair("serializers", "SerializerProvider?")
+                ),
                 methodCode = listOf(
                     "gen!!.$writeMethod(value?.value)"
                 ),
@@ -197,7 +201,11 @@ class KotlinApiTypeGenerator(private val classWriterProducer : KotlinClassWriter
             serializerWriter.typeMethod(
                 modifiers = listOf("override"),
                 methodName = "serialize",
-                methodParameters = "value: ${typeMeta.name}?, gen: JsonGenerator?, serializers: SerializerProvider?",
+                methodParameters = listOf(
+                    Pair("value", "${typeMeta.name}?"),
+                    Pair("gen", "JsonGenerator?"),
+                    Pair("serializers", "SerializerProvider?")
+                ),
                 methodCode = serializerCode,
                 methodTypeDependencies = serializerTypeDependencies
             )

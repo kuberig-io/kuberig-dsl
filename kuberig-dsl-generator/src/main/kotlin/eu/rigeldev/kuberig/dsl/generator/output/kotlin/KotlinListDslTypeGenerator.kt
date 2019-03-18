@@ -27,12 +27,24 @@ class KotlinListDslTypeGenerator(private val classWriterProducer : KotlinClassWr
                 "mutableListOf()"
             )
 
-            val addMethodName = listDslMeta.addMethodName()
+            val addMethodName = classWriter.kotlinSafe(listDslMeta.addMethodName())
+
+            classWriter.typeMethod(
+                methodName = addMethodName,
+                methodParameters = listOf(
+                    Pair(addMethodName, listItemType)
+                ),
+                methodCode = listOf(
+                    "this.list.add($addMethodName)"
+                )
+            )
 
             if (listDslMeta.complexItemType()) {
                 classWriter.typeMethod(
                     methodName = addMethodName,
-                    methodParameters = "init : $listItemType.() -> Unit",
+                    methodParameters = listOf(
+                        Pair("init", "$listItemType.() -> Unit")
+                    ),
                     methodCode = listOf(
                         "val item = $listItemType()",
                         "item.init()",
@@ -57,14 +69,6 @@ class KotlinListDslTypeGenerator(private val classWriterProducer : KotlinClassWr
             }
             else {
                 classWriter.typeMethod(
-                    methodName = addMethodName,
-                    methodParameters = "$addMethodName : $listItemType",
-                    methodCode = listOf(
-                        "this.list.add($addMethodName)"
-                    )
-                )
-
-                classWriter.typeMethod(
                     modifiers = listOf("override"),
                     methodName = "toValue",
                     methodReturnType = "List<$resultListItemType>",
@@ -76,6 +80,19 @@ class KotlinListDslTypeGenerator(private val classWriterProducer : KotlinClassWr
                     )
                 )
             }
+
+            classWriter.fileMethod(
+                methodName = listDslMeta.declarationType().methodName(),
+                methodParameters = listOf(
+                    Pair("init", "${listDslMeta.declarationType().typeShortName()}.() -> Unit")
+                ),
+                methodReturnType = listDslMeta.declarationType().typeShortName(),
+                methodCode = listOf(
+                    "val gen = ${listDslMeta.declarationType().typeShortName()}()",
+                    "gen.init()",
+                    "return gen"
+                )
+            )
         }
     }
 }

@@ -44,7 +44,9 @@ class KotlinDslRootsGenerator(private val classWriterProducer : KotlinClassWrite
                 // dsl methods for sub containers
                 classWriter.typeMethod(
                     methodName = subName,
-                    methodParameters = "init : ${subContainerType.typeShortName()}.() -> Unit",
+                    methodParameters = listOf(
+                        Pair("init","${subContainerType.typeShortName()}.() -> Unit")
+                    ),
                     methodCode = listOf(
                         "this.$subName.init()"
                     ),
@@ -61,7 +63,10 @@ class KotlinDslRootsGenerator(private val classWriterProducer : KotlinClassWrite
 
                 classWriter.typeMethod(
                     methodName = kindMethodName,
-                    methodParameters = "alias : String, init : ${kindType}.() -> Unit",
+                    methodParameters = listOf(
+                        Pair("alias", "String"),
+                        Pair("init", "$kindType.() -> Unit")
+                    ),
                     methodCode = listOf(
                         "val dsl = ${kindType}()",
                         "dsl.init()",

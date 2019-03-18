@@ -24,6 +24,7 @@ class KotlinClassWriter(private val typeName : DslTypeName,
     private val writer : BufferedWriter = classWriterProducer.classWriter(this.typeName.absoluteName)
 
     private val classDetails = mutableListOf<ClassDetail>()
+    private val fileMethods = mutableListOf<String>()
 
     internal class ClassDetail(val typeName : DslTypeName,
                                val classType : String = "open class") {
@@ -79,7 +80,7 @@ class KotlinClassWriter(private val typeName : DslTypeName,
         this.writer.newLine()
     }
 
-    private fun kotlinSafe(name : String) : String {
+    fun kotlinSafe(name : String) : String {
         return if (name == "object" || name == "continue" || name.startsWith('$'))  {
             "`$name`"
         } else {
@@ -247,22 +248,24 @@ class KotlinClassWriter(private val typeName : DslTypeName,
         )
     }
 
-    fun typeMethod(modifiers : List<String> = emptyList(),
-                   methodName : String,
-                   methodParameters : String = "",
-                   methodReturnType : String = "",
-                   methodCode : List<String>,
-                   methodTypeDependencies : List<String> = emptyList(),
-                   methodDocumentation : String = "") {
+    private fun method(targetMethodLines : MutableList<String>,
+                       modifiers : List<String> = emptyList(),
+                       methodName : String,
+                       methodParameters : List<Pair<String, String>> = emptyList(),
+                       methodReturnType : String = "",
+                       methodCode : List<String>,
+                       methodTypeDependencies : List<String> = emptyList(),
+                       methodDocumentation : String = "",
+                       linePrefix : String) {
         methodTypeDependencies.forEach(this::typeImport)
 
 
         val methodWriter = StringWriter()
         val buffered = BufferedWriter(methodWriter)
 
-        buffered.write(this.writeDoc(methodDocumentation, "    "))
+        buffered.write(this.writeDoc(methodDocumentation, linePrefix))
         buffered.newLine()
-        buffered.write("    ")
+        buffered.write(linePrefix)
         if (modifiers.isNotEmpty()) {
             buffered.write(modifiers.joinToString(" "))
             buffered.write(" ")
@@ -270,8 +273,22 @@ class KotlinClassWriter(private val typeName : DslTypeName,
         buffered.write("fun ")
         buffered.write(this.kotlinSafe(methodName))
         buffered.write("(")
-        if (methodParameters != "") {
-            buffered.write(methodParameters)
+        if (methodParameters.isNotEmpty()) {
+
+            val paramIt = methodParameters.iterator()
+
+            while (paramIt.hasNext()) {
+                val paramInfo = paramIt.next()
+
+                buffered.write(this.kotlinSafe(paramInfo.first))
+                buffered.write(" : ")
+                buffered.write(paramInfo.second)
+
+
+                if (paramIt.hasNext()) {
+                    buffered.write(", ")
+                }
+            }
         }
         buffered.write(") ")
         if (methodReturnType != "") {
@@ -281,15 +298,56 @@ class KotlinClassWriter(private val typeName : DslTypeName,
         buffered.newLine()
 
         methodCode.forEach {
-            buffered.write("        $it")
+            buffered.write("$linePrefix    $it")
             buffered.newLine()
         }
 
-        buffered.write("    }")
+        buffered.write("$linePrefix}")
         buffered.newLine()
 
         buffered.close()
-        this.current.typeMethodDeclarations.add(methodWriter.toString())
+
+        targetMethodLines.add(methodWriter.toString())
+    }
+
+    fun typeMethod(modifiers : List<String> = emptyList(),
+                   methodName : String,
+                   methodParameters : List<Pair<String, String>> = emptyList(),
+                   methodReturnType : String = "",
+                   methodCode : List<String>,
+                   methodTypeDependencies : List<String> = emptyList(),
+                   methodDocumentation : String = "") {
+        this.method(
+            this.current.typeMethodDeclarations,
+            modifiers,
+            methodName,
+            methodParameters,
+            methodReturnType,
+            methodCode,
+            methodTypeDependencies,
+            methodDocumentation,
+            "    "
+        )
+    }
+
+    fun fileMethod(modifiers : List<String> = emptyList(),
+                   methodName : String,
+                   methodParameters : List<Pair<String, String>> = emptyList(),
+                   methodReturnType : String = "",
+                   methodCode : List<String>,
+                   methodTypeDependencies : List<String> = emptyList(),
+                   methodDocumentation : String = "") {
+        this.method(
+            this.fileMethods,
+            modifiers,
+            methodName,
+            methodParameters,
+            methodReturnType,
+            methodCode,
+            methodTypeDependencies,
+            methodDocumentation,
+            ""
+        )
     }
 
     override fun close() {
@@ -369,6 +427,14 @@ class KotlinClassWriter(private val typeName : DslTypeName,
                 this.writer.newLine()
             }
 
+        }
+
+        if (this.fileMethods.isNotEmpty()) {
+            this.writer.newLine()
+
+            this.fileMethods.forEach {
+                this.writeLine(it)
+            }
         }
 
         this.writer.flush()

@@ -31,10 +31,24 @@ class KotlinMapDslTypeGenerator(private val classWriterProducer : KotlinClassWri
 
             val addMethodName = mapDslMeta.addMethodName()
 
+            classWriter.typeMethod(
+                methodName = addMethodName,
+                methodParameters = listOf(
+                    Pair("key", "String"),
+                    Pair("value", mapItemType)
+                ),
+                methodCode = listOf(
+                    "this.map[key] = value"
+                )
+            )
+
             if (mapDslMeta.complexItemType()) {
                 classWriter.typeMethod(
                     methodName = addMethodName,
-                    methodParameters = "key : String, init : $mapItemType.() -> Unit",
+                    methodParameters = listOf(
+                        Pair("key", "String"),
+                        Pair("init", "$mapItemType.() -> Unit")
+                    ),
                     methodCode = listOf(
                         "val itemValue = $mapItemType()",
                         "itemValue.init()",
@@ -61,14 +75,6 @@ class KotlinMapDslTypeGenerator(private val classWriterProducer : KotlinClassWri
             }
             else {
                 classWriter.typeMethod(
-                    methodName = addMethodName,
-                    methodParameters = "key : String, value : $mapItemType",
-                    methodCode = listOf(
-                        "this.map[key] = value"
-                    )
-                )
-
-                classWriter.typeMethod(
                     modifiers = listOf("override"),
                     methodName = "toValue",
                     methodReturnType = "Map<String, $resultMapItemType>",
@@ -80,6 +86,19 @@ class KotlinMapDslTypeGenerator(private val classWriterProducer : KotlinClassWri
                     )
                 )
             }
+
+            classWriter.fileMethod(
+                methodName = mapDslMeta.declarationType().methodName(),
+                methodParameters = listOf(
+                    Pair("init", "${mapDslMeta.declarationType().typeShortName()}.() -> Unit")
+                ),
+                methodReturnType = mapDslMeta.declarationType().typeShortName(),
+                methodCode = listOf(
+                    "val gen = ${mapDslMeta.declarationType().typeShortName()}()",
+                    "gen.init()",
+                    "return gen"
+                )
+            )
         }
     }
 

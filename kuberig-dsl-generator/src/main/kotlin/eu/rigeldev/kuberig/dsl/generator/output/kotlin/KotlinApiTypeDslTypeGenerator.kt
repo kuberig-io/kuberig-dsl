@@ -81,7 +81,9 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
 
                 classWriter.typeMethod(
                     methodName = "value",
-                    methodParameters = "value : ${typeName.typeShortName()}",
+                    methodParameters = listOf(
+                        Pair("value", typeName.typeShortName())
+                    ),
                     methodCode = listOf(
                         "this.value = ${typeMeta.name}_$name(value)"
                     )
@@ -140,7 +142,9 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
             } else {
                 classWriter.typeMethod(
                     methodName = typeMeta.name.toLowerCase(),
-                    methodParameters = "contained : ${typeMeta.containedType.typeShortName()}",
+                    methodParameters = listOf(
+                        Pair("contained", typeMeta.containedType.typeShortName())
+                    ),
                     methodCode = listOf(
                         "this.value = contained"
                     )
@@ -191,7 +195,9 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                         classWriter.typeMethod(
                             methodDocumentation = attributeMeta.description,
                             methodName = attributeName,
-                            methodParameters = "init: ${listDslMeta.declarationType().typeShortName()}.() -> Unit",
+                            methodParameters = listOf(
+                                Pair("init","${listDslMeta.declarationType().typeShortName()}.() -> Unit")
+                            ),
                             methodCode = listOf(
                                 "this.$attributeName.init()"
                             )
@@ -203,7 +209,9 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                         if (listDslMeta.complexItemType()) {
                             classWriter.typeMethod(
                                 methodName = attributeName,
-                                methodParameters = "init : ${listItemType.typeShortName()}.() -> Unit",
+                                methodParameters = listOf(
+                                    Pair("init", "${listItemType.typeShortName()}.() -> Unit")
+                                ),
                                 methodCode = listOf(
                                     "this.$attributeName.item(init)"
                                 ),
@@ -216,7 +224,9 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                             classWriter.typeMethod(
                                 methodDocumentation = attributeMeta.description,
                                 methodName = attributeName,
-                                methodParameters = "value : ${listItemType.typeShortName()}",
+                                methodParameters = listOf(
+                                    Pair("value", "${listItemType.typeShortName()}")
+                                ),
                                 methodCode = listOf(
                                     "this.$attributeName.item(value)"
                                 )
@@ -241,7 +251,9 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                         classWriter.typeMethod(
                             methodDocumentation = attributeMeta.description,
                             methodName = attributeName,
-                            methodParameters = "init: ${mapDslMeta.declarationType().typeShortName()}.() -> Unit",
+                            methodParameters = listOf(
+                                Pair("init","${mapDslMeta.declarationType().typeShortName()}.() -> Unit")
+                            ),
                             methodCode = listOf(
                                 "this.$attributeName.init()"
                             )
@@ -253,7 +265,10 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                         if (mapDslMeta.complexItemType()) {
                             classWriter.typeMethod(
                                 methodName = attributeName,
-                                methodParameters = "key : String, init : ${mapItemType.typeShortName()}.() -> Unit",
+                                methodParameters = listOf(
+                                    Pair("key", "String"),
+                                    Pair("init", "${mapItemType.typeShortName()}.() -> Unit")
+                                ),
                                 methodCode = listOf(
                                     "this.$attributeName.item(key, init)"
                                 ),
@@ -265,7 +280,10 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                             classWriter.typeMethod(
                                 methodDocumentation = attributeMeta.description,
                                 methodName = attributeName,
-                                methodParameters = "key : String, value : ${mapItemType.typeShortName()}",
+                                methodParameters = listOf(
+                                    Pair("key", "String"),
+                                    Pair("value", mapItemType.typeShortName())
+                                ),
                                 methodCode = listOf(
                                     "this.$attributeName.item(key, value)"
                                 )
@@ -292,7 +310,9 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                                 classWriter.typeMethod(
                                     methodDocumentation = attributeMeta.description,
                                     methodName = attributeName,
-                                    methodParameters = "$attributeName : ${typeName.typeShortName()}",
+                                    methodParameters = listOf(
+                                        Pair(attributeName, typeName.typeShortName())
+                                    ),
                                     methodCode = listOf(
                                         "this.$attributeName = ${attributeMeta.attributeDeclarationType()}Dsl()",
                                         "this.$attributeName!!.value($attributeName)"
@@ -305,7 +325,9 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                             classWriter.typeMethod(
                                 methodDocumentation = attributeMeta.description,
                                 methodName = attributeName,
-                                methodParameters = "init : ${attributeMeta.attributeDeclarationType()}Dsl.() -> Unit",
+                                methodParameters = listOf(
+                                    Pair("init", "${attributeMeta.attributeDeclarationType()}Dsl.() -> Unit")
+                                ),
                                 methodCode = listOf(
                                     "val attr = ${attributeMeta.attributeDeclarationType()}Dsl()",
                                     "attr.init()",
@@ -328,7 +350,9 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                         classWriter.typeMethod(
                             methodDocumentation = attributeMeta.description,
                             methodName = attributeName,
-                            methodParameters = "$attributeName : ${attributeMeta.attributeDeclarationType()}",
+                            methodParameters = listOf(
+                                Pair(attributeName, attributeMeta.attributeDeclarationType())
+                            ),
                             methodCode = listOf(
                                 "this.$attributeName = $attributeName"
                             )
