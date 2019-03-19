@@ -1,5 +1,8 @@
 package kinds
 
+import io.k8s.api.core.v1.probe
+import io.k8s.api.core.v1.resourceRequirements
+import io.k8s.apimachinery.pkg.apis.meta.v1.objectMeta
 import org.junit.jupiter.api.Test
 
 
@@ -11,45 +14,67 @@ class DslKindsRootTest {
     fun tryOut() {
         val dslRoot = DslKindsRoot(YamlOutputSink())
 
+        val name = "my-spring-boot-service"
+
+        val metadata = objectMeta {
+            namespace("my-spring-boot-service")
+            name(name)
+        }
+
+        val podLabel = Pair("app", name)
+        val containerPort = 8080
+
+        val springBootActuatorHealth = probe {
+            httpGet {
+                path("/actuator/health")
+                port(9090)
+            }
+        }
+
+        val springBootResources = resourceRequirements {
+            requests {
+                request("cpu") {
+                    quantity("500m")
+                }
+                request("memory") {
+                    quantity("250Mi")
+                }
+            }
+            limits {
+                limit("cpu") {
+                    quantity("1000m")
+                }
+                limit("memory") {
+                    quantity("500Mi")
+                }
+            }
+        }
+
         dslRoot.apply {
             apps{
                 v1{
-                    deployment("ktrack-simple") {
-                        metadata {
-                            namespace("ktrack")
-                            name("ktrack-simple")
-                        }
+                    deployment(name) {
+                        metadata(metadata)
                         spec {
                             template {
                                 metadata {
                                     labels {
-                                        label("app", "ktrack-simple")
+                                        label(podLabel)
                                     }
                                 }
                                 spec {
                                     containers {
                                         container {
-                                            name("krack-simple")
-                                            image("eu.gcr.io/rigeldev-io/ktrack-simple:0.1.2")
+                                            name(name)
+                                            image("my-spring-boot-service:0.1.0")
                                             ports {
                                                 port {
                                                     name("http")
-                                                    containerPort(8080)
+                                                    containerPort(containerPort)
                                                 }
                                             }
-                                            readinessProbe {
-                                                httpGet {
-                                                    path("/actuator/health")
-                                                    port(9090)
-                                                }
-                                            }
-                                            resources {
-                                                limits {
-                                                    limit("cpu") {
-                                                        quantity("100Mi")
-                                                    }
-                                                }
-                                            }
+                                            readinessProbe(springBootActuatorHealth)
+                                            resources(springBootResources)
                                         }
                                     }
                                 }
@@ -61,24 +86,22 @@ class DslKindsRootTest {
             }
 
             v1 {
-                service("ktrack-simple") {
-                    metadata {
-                        namespace("ktrack")
-                        name("ktrack-simple")
-                    }
+                service(name) {
+                    metadata(metadata)
                     spec {
                         ports {
                             port {
                                 port(80)
-                                targetPort(8080)
+                                targetPort(containerPort)
                                 protocol("TCP")
                             }
                         }
-                        selector("app", "ktrack-simple")
+                        selector(podLabel)
                     }
                 }
 
-                secret("test-secret") {
+                secret(name) {
+                    metadata(metadata)
                     stringData("some-key", "super-secret")
                 }
             }

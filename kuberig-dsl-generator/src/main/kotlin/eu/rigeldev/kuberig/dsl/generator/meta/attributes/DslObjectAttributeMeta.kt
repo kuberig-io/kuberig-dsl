@@ -18,7 +18,11 @@ class DslObjectAttributeMeta(
 
     override fun toValueConstructorSuffix(): String {
         return if (this.absoluteType.requiresImport()) {
-            "?.toValue()"
+            return if (super.isOptional() && !listOf("metadata", "spec").contains(this.name)) {
+                "?.toValue()"
+            } else {
+                "!!.toValue()"
+            }
         } else {
             ""
         }

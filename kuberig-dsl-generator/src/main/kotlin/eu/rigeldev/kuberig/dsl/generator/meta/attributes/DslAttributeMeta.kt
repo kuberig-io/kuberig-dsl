@@ -12,6 +12,20 @@ abstract class DslAttributeMeta(
         return !this.required
     }
 
+    fun getterMethodName() : String {
+        val splitIndex = 1
+
+        val wrappingNeeded = name.startsWith('$')
+
+        val methodName = "get" + this.name.substring(0, splitIndex).toUpperCase() + this.name.substring(splitIndex)
+
+        return if (wrappingNeeded) {
+            "`$methodName`"
+        } else {
+            methodName
+        }
+    }
+
     abstract fun absoluteAttributeDeclarationType() : DslTypeName
 
     abstract fun attributeDeclarationType() : String

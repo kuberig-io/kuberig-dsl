@@ -20,15 +20,15 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
         val kotlinClassWriter = KotlinClassWriter(typeName, this.classWriterProducer)
 
         when(typeMeta) {
-            is DslObjectTypeMeta -> this.generateObjectDsl(typeMeta, kotlinClassWriter)
-            is DslContainerTypeMeta -> this.generateContainerDsl(typeMeta, kotlinClassWriter)
-            is DslSealedTypeMeta -> this.generatedSealedDsl(typeMeta, kotlinClassWriter)
-            is DslInterfaceTypeMeta -> this.generateInterfaceDsl(typeMeta, kotlinClassWriter)
+            is DslObjectTypeMeta -> this.generateObjectDsl(typeName, typeMeta, kotlinClassWriter)
+            is DslContainerTypeMeta -> this.generateContainerDsl(typeName, typeMeta, kotlinClassWriter)
+            is DslSealedTypeMeta -> this.generatedSealedDsl(typeName, typeMeta, kotlinClassWriter)
+            is DslInterfaceTypeMeta -> this.generateInterfaceDsl(typeName, typeMeta, kotlinClassWriter)
             else -> throw IllegalStateException("Don't know what to do with " + typeMeta::javaClass)
         }
     }
 
-    private fun generateInterfaceDsl(typeMeta: DslInterfaceTypeMeta, kotlinClassWriter: KotlinClassWriter) {
+    private fun generateInterfaceDsl(typeName : DslTypeName, typeMeta: DslInterfaceTypeMeta, kotlinClassWriter: KotlinClassWriter) {
         kotlinClassWriter.use { classWriter ->
             classWriter.typeDocumentation(typeMeta.description)
 
@@ -51,10 +51,12 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                     "return ${typeMeta.name}()"
                 )
             )
+
+            this.addGeneratorFunction(typeName, typeMeta, classWriter)
         }
     }
 
-    private fun generatedSealedDsl(typeMeta: DslSealedTypeMeta, kotlinClassWriter: KotlinClassWriter) {
+    private fun generatedSealedDsl(typeName : DslTypeName, typeMeta: DslSealedTypeMeta, kotlinClassWriter: KotlinClassWriter) {
         kotlinClassWriter.use { classWriter ->
             classWriter.typeDocumentation(typeMeta.description)
 
@@ -99,10 +101,12 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                     "return this.value!!"
                 )
             )
+
+            this.addGeneratorFunction(typeName, typeMeta, classWriter)
         }
     }
 
-    private fun generateContainerDsl(typeMeta: DslContainerTypeMeta, kotlinClassWriter: KotlinClassWriter) {
+    private fun generateContainerDsl(typeName : DslTypeName, typeMeta: DslContainerTypeMeta, kotlinClassWriter: KotlinClassWriter) {
         kotlinClassWriter.use { classWriter ->
             classWriter.typeDocumentation(typeMeta.description)
 
@@ -159,10 +163,12 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                     "return ${typeMeta.name}(this.value!!)"
                 )
             )
+
+            this.addGeneratorFunction(typeName, typeMeta, classWriter)
         }
     }
 
-    private fun generateObjectDsl(typeMeta: DslObjectTypeMeta, kotlinClassWriter: KotlinClassWriter) {
+    private fun generateObjectDsl(typeName : DslTypeName, typeMeta: DslObjectTypeMeta, kotlinClassWriter: KotlinClassWriter) {
         kotlinClassWriter.use { classWriter ->
             classWriter.typeDocumentation(typeMeta.description)
 
@@ -177,17 +183,38 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                 )
             )
 
-            typeMeta.attributes.minus(attributeIgnores).forEach { attributeName, attributeMeta ->
+            typeMeta.attributes.minus(attributeIgnores).forEach { rawAttributeName, attributeMeta ->
+
+                val attributeName = classWriter.kotlinSafe(rawAttributeName)
 
                 if (attributeMeta is DslListAttributeMeta) {
                     val listDslMeta = this.dslMeta.getListDslMeta(typeMeta, attributeMeta)
 
                     classWriter.typeAttribute(
-                        listOf("private", "val"),
+                        listOf("private", "var"),
                         attributeName,
                         listDslMeta.declarationType(),
                         listDslMeta.declarationType().typeShortName() + "()",
                         attributeMeta.description
+                    )
+
+                    classWriter.typeMethod(
+                        methodDocumentation = attributeMeta.description,
+                        methodName = attributeName,
+                        methodParameters = listOf(
+                            Pair(attributeName, listDslMeta.declarationType().typeShortName())
+                        ),
+                        methodCode = listOf(
+                            "this.$attributeName = $attributeName"
+                        )
+                    )
+
+                    classWriter.typeMethod(
+                        methodName = attributeMeta.getterMethodName(),
+                        methodReturnType = listDslMeta.declarationType().typeShortName() + "?",
+                        methodCode = listOf(
+                            "return this.$attributeName"
+                        )
                     )
 
                     if (listDslMeta.plural) {
@@ -225,7 +252,7 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                                 methodDocumentation = attributeMeta.description,
                                 methodName = attributeName,
                                 methodParameters = listOf(
-                                    Pair("value", "${listItemType.typeShortName()}")
+                                    Pair("value", listItemType.typeShortName())
                                 ),
                                 methodCode = listOf(
                                     "this.$attributeName.item(value)"
@@ -240,11 +267,30 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                     val mapDslMeta = this.dslMeta.getMapDslMeta(typeMeta, attributeMeta)
 
                     classWriter.typeAttribute(
-                        listOf("private", "val"),
+                        listOf("private", "var"),
                         attributeName,
                         mapDslMeta.declarationType(),
                         mapDslMeta.declarationType().typeShortName() + "()",
                         attributeMeta.description
+                    )
+
+                    classWriter.typeMethod(
+                        methodDocumentation = attributeMeta.description,
+                        methodName = attributeName,
+                        methodParameters = listOf(
+                            Pair(attributeName, mapDslMeta.declarationType().typeShortName())
+                        ),
+                        methodCode = listOf(
+                            "this.$attributeName = $attributeName"
+                        )
+                    )
+
+                    classWriter.typeMethod(
+                        methodName = attributeMeta.getterMethodName(),
+                        methodReturnType = mapDslMeta.declarationType().typeShortName() + "?",
+                        methodCode = listOf(
+                            "return this.$attributeName"
+                        )
                     )
 
                     if (mapDslMeta.plural) {
@@ -261,6 +307,17 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                     }
                     else {
                         val mapItemType = mapDslMeta.dslItemType()
+
+                        classWriter.typeMethod(
+                            methodDocumentation = attributeMeta.description,
+                            methodName = attributeName,
+                            methodParameters = listOf(
+                                Pair("pair", "Pair<String, ${mapItemType.typeShortName()}>")
+                            ),
+                            methodCode = listOf(
+                                "this.$attributeName.item(pair.first, pair.second)"
+                            )
+                        )
 
                         if (mapDslMeta.complexItemType()) {
                             classWriter.typeMethod(
@@ -295,12 +352,33 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
 
                     if (attributeMeta.absoluteType.requiresImport()) {
 
+                        val declarationType = DslTypeName(attributeMeta.absoluteType.absoluteName + "Dsl")
+
                         classWriter.typeAttribute(
                             listOf("private", "var"),
                             attributeName,
-                            DslTypeName(attributeMeta.absoluteType.absoluteName + "Dsl"),
+                            declarationType,
                             "null",
                             nullable = true
+                        )
+
+                        classWriter.typeMethod(
+                            methodDocumentation = attributeMeta.description,
+                            methodName = attributeName,
+                            methodParameters = listOf(
+                                Pair(attributeName, declarationType.typeShortName())
+                            ),
+                            methodCode = listOf(
+                                "this.$attributeName = $attributeName"
+                            )
+                        )
+
+                        classWriter.typeMethod(
+                            methodName = attributeMeta.getterMethodName(),
+                            methodReturnType = declarationType.typeShortName() + "?",
+                            methodCode = listOf(
+                                "return this.$attributeName"
+                            )
                         )
 
                         val attributeTypeMeta = this.dslMeta.typeMeta[attributeMeta.absoluteType.absoluteName]
@@ -357,6 +435,14 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                                 "this.$attributeName = $attributeName"
                             )
                         )
+
+                        classWriter.typeMethod(
+                            methodName = attributeMeta.getterMethodName(),
+                            methodReturnType = attributeMeta.absoluteType.typeShortName() + "?",
+                            methodCode = listOf(
+                                "return this.$attributeName"
+                            )
+                        )
                     }
                 }
             }
@@ -370,8 +456,9 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
 
             val constructorIt = typeMeta.attributes.minus(toValueAttributeIgnores).iterator()
             while(constructorIt.hasNext()) {
-                val (attributeName, attributeMeta) = constructorIt.next()
+                val (rawAttributeName, attributeMeta) = constructorIt.next()
 
+                val attributeName = classWriter.kotlinSafe(rawAttributeName)
                 val constructorParameter = StringWriter()
 
                 constructorParameter.append("    $attributeName = ")
@@ -411,7 +498,26 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                 methodReturnType = typeMeta.name,
                 methodCode = toValueMethodCode
             )
+
+            this.addGeneratorFunction(typeName, typeMeta, classWriter)
         }
+    }
+
+    private fun addGeneratorFunction(dslTypeName: DslTypeName, typeMeta: DslTypeMeta, classWriter: KotlinClassWriter) {
+        val declarationType = DslTypeName(typeMeta.absoluteName)
+
+        classWriter.fileMethod(
+            methodName = declarationType.methodName(),
+            methodParameters = listOf(
+                Pair("init", "${dslTypeName.typeShortName()}.() -> Unit")
+            ),
+            methodReturnType = dslTypeName.typeShortName(),
+            methodCode = listOf(
+                "val gen = ${dslTypeName.typeShortName()}()",
+                "gen.init()",
+                "return gen"
+            )
+        )
     }
 
 }

@@ -70,10 +70,21 @@ class KotlinDslRootsGenerator(private val classWriterProducer : KotlinClassWrite
                     methodCode = listOf(
                         "val dsl = ${kindType}()",
                         "dsl.init()",
-                        "this.sink.add(DslResource(alias, dsl.toValue()))"
+                        "this.sink.add(DslResource(alias, dsl))"
                     ),
                     methodTypeDependencies = listOf(
                         "eu.rigeldev.kuberig.dsl.DslResource"
+                    )
+                )
+
+                classWriter.typeMethod(
+                    methodName = kindMethodName,
+                    methodParameters = listOf(
+                        Pair("alias", "String"),
+                        Pair(kindMethodName, kindType)
+                    ),
+                    methodCode = listOf(
+                        "this.sink.add(DslResource(alias, $kindMethodName))"
                     )
                 )
             }

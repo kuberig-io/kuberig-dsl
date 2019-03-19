@@ -42,6 +42,16 @@ class KotlinMapDslTypeGenerator(private val classWriterProducer : KotlinClassWri
                 )
             )
 
+            classWriter.typeMethod(
+                methodName = addMethodName,
+                methodParameters = listOf(
+                    Pair("pair", "Pair<String, $mapItemType>")
+                ),
+                methodCode = listOf(
+                    "this.map[pair.first] = pair.second"
+                )
+            )
+
             if (mapDslMeta.complexItemType()) {
                 classWriter.typeMethod(
                     methodName = addMethodName,

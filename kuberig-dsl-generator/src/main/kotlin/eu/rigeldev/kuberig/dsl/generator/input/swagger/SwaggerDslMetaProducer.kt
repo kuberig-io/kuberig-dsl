@@ -1,7 +1,9 @@
 package eu.rigeldev.kuberig.dsl.generator.input.swagger
 
 import eu.rigeldev.kuberig.dsl.generator.input.DslMetaProducer
-import eu.rigeldev.kuberig.dsl.generator.meta.*
+import eu.rigeldev.kuberig.dsl.generator.meta.DslMeta
+import eu.rigeldev.kuberig.dsl.generator.meta.DslPlatformSpecifics
+import eu.rigeldev.kuberig.dsl.generator.meta.DslTypeName
 import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslAttributeMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslListAttributeMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslMapAttributeMeta
@@ -215,9 +217,8 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         val attributes = mutableMapOf<String, DslAttributeMeta>()
 
         if (model.properties != null) {
-            model.properties.forEach { rawName, property ->
+            model.properties.forEach { name, property ->
 
-                val name = this.propertyName(rawName)
                 val documentation = property.description ?: ""
                 val required = this.isPropertyRequired(model, property)
 
@@ -303,14 +304,6 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
 
     private fun className(absoluteName: String): String {
         return absoluteName.split(".", "-").last()
-    }
-
-    private fun propertyName(original: String): String {
-        return if (original == "object" || original == "continue" || original.startsWith('$')) {
-            "`$original`"
-        } else {
-            original
-        }
     }
 
     private fun isObjectProperty(property: Property): Boolean {

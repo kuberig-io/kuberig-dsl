@@ -20,8 +20,8 @@ class YamlOutputSink : DslResourceSink {
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
     }
 
-    override fun add(resource: DslResource) {
+    override fun <T> add(resource: DslResource<T>) {
         println("#---alias:${resource.alias}---")
-        println(this.objectMapper.writeValueAsString(resource.value))
+        println(this.objectMapper.writeValueAsString(resource.dslType.toValue()))
     }
 }
