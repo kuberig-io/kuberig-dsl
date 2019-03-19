@@ -1,4 +1,4 @@
-![pipeline status](https://gitlab.com/kuberig/kuberig-dsl/badges/master/pipeline.svg)
+[![pipeline status](https://gitlab.com/kuberig/kuberig-dsl/badges/master/pipeline.svg)](https://gitlab.com/kuberig/kuberig-dsl/pipelines)
 
 # kuberig-dsl
 
