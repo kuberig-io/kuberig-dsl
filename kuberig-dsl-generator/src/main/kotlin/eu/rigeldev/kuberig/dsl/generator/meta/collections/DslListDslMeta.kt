@@ -13,7 +13,11 @@ class DslListDslMeta(type : DslTypeName,
     }
 
     override fun declarationType() : DslTypeName {
-        return DslTypeName(type.absoluteName + meta.name.substring(0, 1).toUpperCase() + meta.name.substring(1))
+        return DslTypeName(type.absoluteName
+                + meta.name.substring(0, 1).toUpperCase()
+                + meta.name.substring(1)
+                + "Dsl"
+        )
     }
 
 }
