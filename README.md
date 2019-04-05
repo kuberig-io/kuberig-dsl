@@ -14,16 +14,23 @@ plugins {
     id("eu.rigeldev.kuberig.dsl.generator") version "0.0.8"
 }
 
-
 repositories {
     jcenter()
 }
 ```
 
-Run gradle build.
+Run `gradle build`.
 Start using the generated DslKindsRoot class.
 
-Check out the usage examples below.
+In case you want to customize the location of the swagger.json or the generation target directory
+you can customize them by adding the kotlinDsl block. The code below shows the defaults applied by the plugin.
+
+```kotlin
+kuberigDsl {
+    swaggerFileLocation.set("src/main/resources/swagger.json")
+    sourceOutputDirectoryLocation.set("build/generated-src/main/kotlin")
+}
+```
 
 ## API usage examples
 
