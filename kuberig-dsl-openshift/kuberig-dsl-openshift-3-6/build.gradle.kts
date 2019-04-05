@@ -1,18 +1,9 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        maven("https://dl.bintray.com/teyckmans/rigeldev-oss-maven")
-    }
-    dependencies {
-        classpath("eu.rigeldev.kuberig:kuberig-dsl-generator-gradle-plugin:0.0.8")
-    }
+plugins {
+    id("eu.rigeldev.kuberig.dsl.generator") version "0.0.8"
 }
 
-apply(plugin = "eu.rigeldev.kuberig.dsl.generator")
-
 repositories {
-    mavenCentral()
-    maven("https://dl.bintray.com/teyckmans/rigeldev-oss-maven")
+    jcenter()
 }
 
 // optional
