@@ -19,11 +19,10 @@ repositories {
 }
 ```
 
-Run `gradle build`.
-Start using the generated DslKindsRoot class.
+Run `gradle build` and start using the generated DslKindsRoot class.
 
 In case you want to customize the location of the swagger.json or the generation target directory
-you can customize them by adding the kotlinDsl block. The code below shows the defaults applied by the plugin.
+you can customize them by adding the kuberigDsl block. The code below shows the defaults applied by the plugin.
 
 ```kotlin
 kuberigDsl {
