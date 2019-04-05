@@ -30,7 +30,7 @@ class TryMeTest {
                         }
                     }
                 }
-                replicas(1)
+                replicas(20)
             }
         }
 

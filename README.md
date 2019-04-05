@@ -2,16 +2,35 @@
 
 # kuberig-dsl
 
-KubeRig DSL generation.
-
 Generates a Kotlin DSL based on the swagger api spec of Kubernetes and OpenShift.
 
-## Examples
+## API generator project
+Place the swagger API definition file from your API server in src\main\resources\swagger.json.
+
+Create a build.gradle.kts file containing.
+
+```kotlin
+plugins {
+    id("eu.rigeldev.kuberig.dsl.generator") version "0.0.8"
+}
+
+
+repositories {
+    jcenter()
+}
+```
+
+Run gradle build.
+Start using the generated DslKindsRoot class.
+
+Check out the usage examples below.
+
+## API usage examples
 
 ### Kubernetes
 
 ```kotlin
-dslRoot.apps.v1.deployment("nginx") {
+DslKindsRoot(YamlOutputSink()).apps.v1.deployment("nginx") {
     metadata {
         name("nginx")
     }
@@ -41,7 +60,7 @@ dslRoot.apps.v1.deployment("nginx") {
 ### OpenShift
 
 ```kotlin
-dslRoot.apply {
+DslKindsRoot(YamlOutputSink()).apply {
     v1 {
         deploymentConfig("nginx") {
             metadata {
@@ -111,7 +130,7 @@ val springBootResources = resourceRequirements {
     }
 }
 
-dslRoot.apply {
+DslKindsRoot(YamlOutputSink()).apply {
     apps{
         v1{
             deployment(name) {
