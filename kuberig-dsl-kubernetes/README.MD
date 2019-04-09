@@ -1,0 +1,1 @@
+Shows how to use a kuberig-dsl-kubernetes-xxx module. Please check out the test code.
