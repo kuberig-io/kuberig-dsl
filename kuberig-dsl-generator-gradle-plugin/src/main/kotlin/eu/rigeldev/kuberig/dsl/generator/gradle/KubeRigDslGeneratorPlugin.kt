@@ -16,12 +16,10 @@
 
 package eu.rigeldev.kuberig.dsl.generator.gradle
 
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.*
 
@@ -36,28 +34,7 @@ open class KubeRigDslGeneratorPlugin : Plugin<Project> {
 
         val props = this.loadProps()
         val kubeRigVersion = props["kuberig.version"]
-        val jacksonVersion = props["jackson.version"]
 
-        project.dependencies.add(
-            "implementation",
-            "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
-        )
-        project.dependencies.add(
-            "implementation",
-            "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
-        )
-        project.dependencies.add(
-            "implementation",
-            "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
-        )
-        project.dependencies.add(
-            "implementation",
-            "com.fasterxml.jackson.module:jackson-modules-java8:$jacksonVersion"
-        )
-        project.dependencies.add(
-            "implementation",
-            "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion"
-        )
         project.dependencies.add(
             "implementation",
             "eu.rigeldev.kuberig:kuberig-dsl-base:$kubeRigVersion"
