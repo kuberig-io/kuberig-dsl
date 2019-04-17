@@ -34,7 +34,28 @@ open class KubeRigDslGeneratorPlugin : Plugin<Project> {
 
         val props = this.loadProps()
         val kubeRigVersion = props["kuberig.version"]
+        val jacksonVersion = props["jackson.version"]
 
+        project.dependencies.add(
+            "implementation",
+            "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
+        )
+        project.dependencies.add(
+            "implementation",
+            "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+        )
+        project.dependencies.add(
+            "implementation",
+            "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
+        )
+        project.dependencies.add(
+            "implementation",
+            "com.fasterxml.jackson.module:jackson-modules-java8:$jacksonVersion"
+        )
+        project.dependencies.add(
+            "implementation",
+            "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion"
+        )
         project.dependencies.add(
             "implementation",
             "eu.rigeldev.kuberig:kuberig-dsl-base:$kubeRigVersion"

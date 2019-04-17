@@ -13,7 +13,7 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 public class OpenShiftDslGenerationTest {
 
@@ -67,7 +67,7 @@ public class OpenShiftDslGenerationTest {
                 .withPluginClasspath()
                 .build();
 
-        assertTrue(result.task("build").getOutcome() == TaskOutcome.SUCCESS);
-        assertTrue(result.task("generateDslSource").getOutcome() == TaskOutcome.SUCCESS);
+        assertSame(result.task(":build").getOutcome(), TaskOutcome.SUCCESS);
+        assertSame(result.task(":generateDslSource").getOutcome(), TaskOutcome.SUCCESS);
     }
 }

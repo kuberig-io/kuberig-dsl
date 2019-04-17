@@ -80,7 +80,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
                 }
 
             } else {
-                println("do not yet know how to handle a " + definition.javaClass)
+                println("do not yet know how to handle a " + definition::class.java)
             }
 
         }
