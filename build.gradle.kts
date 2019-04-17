@@ -15,7 +15,6 @@ buildscript {
 
 subprojects {
     apply {
-        plugin("com.jfrog.bintray")
         plugin("maven-publish")
         plugin("java")
         plugin("idea")
@@ -72,21 +71,27 @@ subprojects {
 
     }
 
-    configure<BintrayExtension> {
-        val bintrayApiKey : String by subProject
-        val bintrayUser : String by subProject
+    if (subProject.properties.containsKey("bintrayUser")) {
+        apply {
+            plugin("com.jfrog.bintray")
+        }
 
-        user = bintrayUser
-        key = bintrayApiKey
-        publish = true
+        configure<BintrayExtension> {
+            val bintrayApiKey: String by subProject
+            val bintrayUser: String by subProject
 
-        pkg(closureOf<BintrayExtension.PackageConfig>{
-            repo = "rigeldev-oss-maven"
-            name = subProject.name
-            setLicenses("Apache-2.0")
-            vcsUrl = "https://github.com/teyckmans/kuberig-dsl"
-        })
+            user = bintrayUser
+            key = bintrayApiKey
+            publish = true
 
-        setPublications(subProject.name)
+            pkg(closureOf<BintrayExtension.PackageConfig> {
+                repo = "rigeldev-oss-maven"
+                name = subProject.name
+                setLicenses("Apache-2.0")
+                vcsUrl = "https://github.com/teyckmans/kuberig-dsl"
+            })
+
+            setPublications(subProject.name)
+        }
     }
 }
