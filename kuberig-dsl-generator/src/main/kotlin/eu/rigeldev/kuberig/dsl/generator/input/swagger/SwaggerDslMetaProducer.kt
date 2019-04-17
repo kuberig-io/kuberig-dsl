@@ -49,18 +49,12 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         if (spec.info.title.toLowerCase().contains("openshift")) {
             this.dslMeta = DslMeta(
                 DslPlatformSpecifics(
-                    "Group",
-                    "Version",
-                    "Kind",
                     listOf("io.k8s", "com.github")
                 )
             )
         } else {
             this.dslMeta = DslMeta(
                 DslPlatformSpecifics(
-                    "group",
-                    "version",
-                    "kind",
                     listOf("io.k8s")
                 )
             )
@@ -86,7 +80,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
                 }
 
             } else {
-                println("do not yet know how to handle a " + definition.javaClass)
+                println("do not yet know how to handle a " + definition::class.java)
             }
 
         }
@@ -301,12 +295,14 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
             val kinds = model.vendorExtensions["x-kubernetes-group-version-kind"]!! as List<LinkedHashMap<*, *>>
 
             kinds.forEach { groupVersionKind ->
+                val normalizedGroupVersionKind = groupVersionKind.mapKeys { (it.key as String).toLowerCase() }
+
                 dslMeta.registerKind(
                     DslKindMeta(
                         DslTypeName(absoluteName),
-                        groupVersionKind[this.dslMeta.platformSpecifics.groupKey] as String,
-                        groupVersionKind[this.dslMeta.platformSpecifics.kindKey] as String,
-                        groupVersionKind[this.dslMeta.platformSpecifics.versionKey] as String
+                        normalizedGroupVersionKind["group"] as String,
+                        normalizedGroupVersionKind["kind"] as String,
+                        normalizedGroupVersionKind["version"] as String
                     )
                 )
             }

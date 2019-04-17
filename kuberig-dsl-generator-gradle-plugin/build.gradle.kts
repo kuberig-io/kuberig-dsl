@@ -1,5 +1,3 @@
-import org.gradle.language.jvm.tasks.ProcessResources
-
 plugins {
     `java-gradle-plugin`
     id("com.gradle.plugin-publish") version "0.10.1"
@@ -10,6 +8,9 @@ dependencies {
     
     implementation(project(":kuberig-dsl-generator"))
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.2")
 }
 
 gradlePlugin {
