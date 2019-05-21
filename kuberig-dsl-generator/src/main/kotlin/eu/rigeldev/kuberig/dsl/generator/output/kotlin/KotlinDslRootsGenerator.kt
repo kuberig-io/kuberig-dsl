@@ -37,7 +37,6 @@ class KotlinDslRootsGenerator(private val classWriterProducer : KotlinClassWrite
     private fun generateDslRootType(typeName : DslTypeName, container : DslKindContainer) {
         KotlinClassWriter(typeName, this.classWriterProducer).use {classWriter ->
 
-            classWriter.typeAnnotation("javax.annotation.Generated")
             classWriter.typeAnnotation("eu.rigeldev.kuberig.dsl.KubeRigDslMarker")
 
             classWriter.typeConstructorParameter(

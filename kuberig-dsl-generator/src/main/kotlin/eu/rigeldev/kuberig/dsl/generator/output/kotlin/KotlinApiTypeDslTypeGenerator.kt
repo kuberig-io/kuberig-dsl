@@ -48,7 +48,6 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
         kotlinClassWriter.use { classWriter ->
             classWriter.typeDocumentation(typeMeta.description)
 
-            classWriter.typeAnnotation("javax.annotation.Generated")
             classWriter.typeAnnotation("eu.rigeldev.kuberig.dsl.KubeRigDslMarker")
 
             classWriter.typeInterface(
@@ -76,7 +75,6 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
         kotlinClassWriter.use { classWriter ->
             classWriter.typeDocumentation(typeMeta.description)
 
-            classWriter.typeAnnotation("javax.annotation.Generated")
             classWriter.typeAnnotation("eu.rigeldev.kuberig.dsl.KubeRigDslMarker")
 
             classWriter.typeInterface(
@@ -126,7 +124,6 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
         kotlinClassWriter.use { classWriter ->
             classWriter.typeDocumentation(typeMeta.description)
 
-            classWriter.typeAnnotation("javax.annotation.Generated")
             classWriter.typeAnnotation("eu.rigeldev.kuberig.dsl.KubeRigDslMarker")
 
             classWriter.typeInterface(
@@ -188,7 +185,6 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
         kotlinClassWriter.use { classWriter ->
             classWriter.typeDocumentation(typeMeta.description)
 
-            classWriter.typeAnnotation("javax.annotation.Generated")
             classWriter.typeAnnotation("eu.rigeldev.kuberig.dsl.KubeRigDslMarker")
 
             classWriter.typeInterface(
