@@ -22,6 +22,9 @@ class KotlinClassWriterTest {
         // hard keyword checks
         assertEquals("`object`", writer.kotlinSafe("object"))
         assertEquals("`null`", writer.kotlinSafe("null"))
+
+        // prevent double wrapping
+        assertEquals("`x-kubernetes-int-or-string`", writer.kotlinSafe("`x-kubernetes-int-or-string`"))
     }
 
 }

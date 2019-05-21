@@ -133,6 +133,10 @@ class KotlinClassWriter(private val typeName : DslTypeName,
     }
 
     fun kotlinSafe(name : String) : String {
+        if (name.startsWith('`') && name.endsWith('`')) {
+            return name
+        }
+
         return if (name.startsWith('$')  || name.contains('-') || hardKeywords.contains(name))  {
             "`$name`"
         } else {
