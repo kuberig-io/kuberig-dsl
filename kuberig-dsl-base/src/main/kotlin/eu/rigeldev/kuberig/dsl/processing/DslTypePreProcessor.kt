@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
-rootProject.name = "kuberig-dsl-kubernetes-1-14"
+package eu.rigeldev.kuberig.dsl.processing
 
-includeBuild("/home/teyckmans/work/rigeldev/code/kuberig/kuberig-dsl")
+import eu.rigeldev.kuberig.dsl.DslType
+
+interface DslTypePreProcessor {
+
+    fun preProcess(dslType: DslType<Any>)
+}

@@ -46,6 +46,6 @@ abstract class DslAttributeMeta(
 
     abstract fun attributeDeclarationType() : String
 
-    abstract fun toValueConstructorSuffix() : String
+    abstract fun toValueCall(attributeName: String) : String
 }
 

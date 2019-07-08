@@ -69,17 +69,14 @@ class KotlinMapDslTypeGenerator(private val classWriterProducer : KotlinClassWri
             )
 
             if (mapDslMeta.complexItemType()) {
-                classWriter.typeMethod(
-                    methodName = addMethodName,
-                    methodParameters = listOf(
-                        Pair("key", "String"),
-                        Pair("init", "$mapItemType.() -> Unit")
-                    ),
-                    methodCode = listOf(
-                        "val itemValue = $mapItemType()",
-                        "itemValue.init()",
-                        "this.map[key] = itemValue"
-                    )
+                complexTypeInitMethod(
+                    classWriter,
+                    addMethodName,
+                    "itemValue",
+                    mapItemType,
+                    declarationNeeded = true,
+                    useStatement = "this.map[key] = itemValue",
+                    extraParameter = Pair("key", "String")
                 )
 
                 classWriter.typeMethod(
@@ -113,18 +110,7 @@ class KotlinMapDslTypeGenerator(private val classWriterProducer : KotlinClassWri
                 )
             }
 
-            classWriter.fileMethod(
-                methodName = mapDslMeta.declarationType().methodName(),
-                methodParameters = listOf(
-                    Pair("init", "${mapDslMeta.declarationType().typeShortName()}.() -> Unit")
-                ),
-                methodReturnType = mapDslMeta.declarationType().typeShortName(),
-                methodCode = listOf(
-                    "val gen = ${mapDslMeta.declarationType().typeShortName()}()",
-                    "gen.init()",
-                    "return gen"
-                )
-            )
+            fileGeneratorFunction(classWriter, mapDslMeta.declarationType(), mapDslMeta.declarationType())
         }
     }
 

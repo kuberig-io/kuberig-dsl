@@ -32,15 +32,11 @@ class DslObjectAttributeMeta(
         return this.absoluteType
     }
 
-    override fun toValueConstructorSuffix(): String {
+    override fun toValueCall(attributeName: String): String {
         return if (this.absoluteType.requiresImport()) {
-            return if (super.isOptional() && !listOf("metadata", "spec").contains(this.name)) {
-                "?.toValue()"
-            } else {
-                "!!.toValue()"
-            }
+            return "this.$attributeName.toValue()"
         } else {
-            ""
+            "this.$attributeName"
         }
     }
 }

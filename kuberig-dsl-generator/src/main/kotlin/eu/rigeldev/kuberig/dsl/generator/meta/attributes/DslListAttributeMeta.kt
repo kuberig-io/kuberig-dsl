@@ -33,7 +33,7 @@ class DslListAttributeMeta(
         return "List<${itemType.typeShortName()}>"
     }
 
-    override fun toValueConstructorSuffix(): String {
-        return ".toValue()"
+    override fun toValueCall(attributeName: String): String {
+        return "this.$attributeName.toValue()"
     }
 }

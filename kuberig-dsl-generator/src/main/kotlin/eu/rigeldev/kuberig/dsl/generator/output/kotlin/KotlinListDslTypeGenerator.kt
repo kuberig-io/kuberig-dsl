@@ -56,16 +56,13 @@ class KotlinListDslTypeGenerator(private val classWriterProducer : KotlinClassWr
             )
 
             if (listDslMeta.complexItemType()) {
-                classWriter.typeMethod(
-                    methodName = addMethodName,
-                    methodParameters = listOf(
-                        Pair("init", "$listItemType.() -> Unit")
-                    ),
-                    methodCode = listOf(
-                        "val item = $listItemType()",
-                        "item.init()",
-                        "this.list.add(item)"
-                    )
+                complexTypeInitMethod(
+                    classWriter,
+                    addMethodName,
+                    "item",
+                    listItemType,
+                    declarationNeeded = true,
+                    useStatement = "this.list.add(item)"
                 )
 
                 classWriter.typeMethod(
@@ -97,18 +94,7 @@ class KotlinListDslTypeGenerator(private val classWriterProducer : KotlinClassWr
                 )
             }
 
-            classWriter.fileMethod(
-                methodName = listDslMeta.declarationType().methodName(),
-                methodParameters = listOf(
-                    Pair("init", "${listDslMeta.declarationType().typeShortName()}.() -> Unit")
-                ),
-                methodReturnType = listDslMeta.declarationType().typeShortName(),
-                methodCode = listOf(
-                    "val gen = ${listDslMeta.declarationType().typeShortName()}()",
-                    "gen.init()",
-                    "return gen"
-                )
-            )
+            fileGeneratorFunction(classWriter, listDslMeta.declarationType(), listDslMeta.declarationType())
         }
     }
 }
