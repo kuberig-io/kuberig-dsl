@@ -2,7 +2,7 @@ import com.jfrog.bintray.gradle.BintrayExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
-    val kotlinVersion by extra("1.3.21")
+    val kotlinVersion by extra("1.3.30")
 
     repositories {
         jcenter()
@@ -15,7 +15,6 @@ buildscript {
 
 subprojects {
     apply {
-        plugin("com.jfrog.bintray")
         plugin("maven-publish")
         plugin("java")
         plugin("idea")
@@ -38,10 +37,6 @@ subprojects {
         val testRuntimeOnly by configurations
 
         implementation(kotlin("stdlib-jdk8"))
-
-        implementation("org.slf4j:slf4j-api:1.7.26")
-        implementation("ch.qos.logback:logback-core:1.2.3")
-        runtime("ch.qos.logback:logback-classic:1.2.3")
 
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.2")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.2")
@@ -76,21 +71,27 @@ subprojects {
 
     }
 
-    configure<BintrayExtension> {
-        val bintrayApiKey : String by subProject
-        val bintrayUser : String by subProject
+    if (subProject.properties.containsKey("bintrayUser")) {
+        apply {
+            plugin("com.jfrog.bintray")
+        }
 
-        user = bintrayUser
-        key = bintrayApiKey
-        publish = true
+        configure<BintrayExtension> {
+            val bintrayApiKey: String by subProject
+            val bintrayUser: String by subProject
 
-        pkg(closureOf<BintrayExtension.PackageConfig>{
-            repo = "rigeldev-oss-maven"
-            name = subProject.name
-            setLicenses("Apache-2.0")
-            vcsUrl = "https://github.com/teyckmans/kuberig-dsl"
-        })
+            user = bintrayUser
+            key = bintrayApiKey
+            publish = true
 
-        setPublications(subProject.name)
+            pkg(closureOf<BintrayExtension.PackageConfig> {
+                repo = "rigeldev-oss-maven"
+                name = subProject.name
+                setLicenses("Apache-2.0")
+                vcsUrl = "https://github.com/teyckmans/kuberig-dsl"
+            })
+
+            setPublications(subProject.name)
+        }
     }
 }

@@ -37,6 +37,42 @@ class KotlinClassWriter(private val typeName : DslTypeName,
                         classWriterProducer : KotlinClassWriterProducer,
                         private val classType : String = "open class") : Closeable {
 
+    /**
+     * Hard Keywords from https://kotlinlang.org/docs/reference/keyword-reference.html
+     */
+    private val hardKeywords = listOf(
+        "as",
+        "as?",
+        "break",
+        "class",
+        "continue",
+        "do",
+        "else",
+        "false",
+        "for",
+        "fun",
+        "if",
+        "in",
+        "!in",
+        "interface",
+        "is",
+        "!is",
+        "null",
+        "object",
+        "package",
+        "return",
+        "super",
+        "this",
+        "throw",
+        "true",
+        "try",
+        "typealias",
+        "val",
+        "var",
+        "when",
+        "while"
+    )
+
     private val writer : BufferedWriter = classWriterProducer.classWriter(this.typeName.absoluteName)
 
     private val classDetails = mutableListOf<ClassDetail>()
@@ -97,7 +133,11 @@ class KotlinClassWriter(private val typeName : DslTypeName,
     }
 
     fun kotlinSafe(name : String) : String {
-        return if (name == "object" || name == "continue" || name.startsWith('$'))  {
+        if (name.startsWith('`') && name.endsWith('`')) {
+            return name
+        }
+
+        return if (name.startsWith('$')  || name.contains('-') || hardKeywords.contains(name))  {
             "`$name`"
         } else {
             name

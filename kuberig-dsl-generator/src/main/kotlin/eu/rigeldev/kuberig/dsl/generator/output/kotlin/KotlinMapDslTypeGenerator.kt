@@ -26,7 +26,6 @@ class KotlinMapDslTypeGenerator(private val classWriterProducer : KotlinClassWri
 
             val resultMapItemType = mapDslMeta.meta.itemType.typeShortName()
 
-            classWriter.typeAnnotation("javax.annotation.Generated")
             classWriter.typeAnnotation("eu.rigeldev.kuberig.dsl.KubeRigDslMarker")
 
             classWriter.typeInterface(
