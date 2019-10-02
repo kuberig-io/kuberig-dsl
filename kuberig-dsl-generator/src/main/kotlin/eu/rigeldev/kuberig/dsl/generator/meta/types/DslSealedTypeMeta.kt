@@ -23,7 +23,7 @@ import eu.rigeldev.kuberig.dsl.generator.meta.DslTypeName
  *
  * These are modelled as sealed kotlin classes.
  *
- * A custom Jackson Serialiser is generated for these types. To preserve correct YAML/JSON output.
+ * A custom Jackson Serializer is generated for these types. To preserve correct YAML/JSON output.
  */
 class DslSealedTypeMeta(
     absoluteName: String,
