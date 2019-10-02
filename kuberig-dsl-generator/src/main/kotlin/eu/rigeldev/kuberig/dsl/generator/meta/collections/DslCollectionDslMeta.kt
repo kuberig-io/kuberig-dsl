@@ -49,7 +49,11 @@ abstract class DslCollectionDslMeta<AM : DslAttributeMeta>(val type : DslTypeNam
      */
     fun addMethodName() : String {
         return if (this.plural) {
-            meta.name.substring(0, meta.name.length - 1)
+            return if (this.meta.name.endsWith("ies")) {
+                meta.name.substring(0, meta.name.length - 3) + "y"
+            } else {
+                meta.name.substring(0, meta.name.length - 1)
+            }
         } else {
             "item"
         }
