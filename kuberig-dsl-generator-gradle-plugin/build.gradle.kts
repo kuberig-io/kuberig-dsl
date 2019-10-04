@@ -13,6 +13,12 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.2")
 }
 
+val projectVersion = if (project.version.toString() == "unspecified") { "0.0.0" } else { project.version.toString() }
+
+tasks.test {
+    systemProperty("projectVersion", projectVersion)
+}
+
 gradlePlugin {
     plugins {
         create("kuberig-dsl-generator-gradle-plugin") {
@@ -33,7 +39,7 @@ pluginBundle {
 tasks.withType<ProcessResources> {
     filesMatching("kuberig.properties") {
         expand(
-            Pair("kuberigVersion", project.version.toString())
+            Pair("kuberigVersion", projectVersion)
         )
     }
 }
