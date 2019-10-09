@@ -2,7 +2,7 @@ import com.jfrog.bintray.gradle.BintrayExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
-    val kotlinVersion by extra("1.3.30")
+    val kotlinVersion by extra("1.3.50")
 
     repositories {
         jcenter()
@@ -71,14 +71,14 @@ subprojects {
 
     }
 
-    if (subProject.properties.containsKey("bintrayUser")) {
+    if (System.getenv("BINTRAY_API_KEY") != null){
         apply {
             plugin("com.jfrog.bintray")
         }
 
         configure<BintrayExtension> {
-            val bintrayApiKey: String by subProject
-            val bintrayUser: String by subProject
+            val bintrayApiKey = System.getenv("BINTRAY_API_KEY")
+            val bintrayUser = System.getenv("BINTRAY_USER")
 
             user = bintrayUser
             key = bintrayApiKey
