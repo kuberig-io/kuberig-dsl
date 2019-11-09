@@ -86,7 +86,7 @@ subprojects {
 
             pkg(closureOf<BintrayExtension.PackageConfig> {
                 repo = "rigeldev-oss-maven"
-                name = "kuberig-dsl"
+                name = subProject.name
                 setLicenses("Apache-2.0")
                 vcsUrl = "https://github.com/teyckmans/kuberig-dsl"
             })
