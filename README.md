@@ -1,3 +1,5 @@
+![KubeRig Logo](https://github.com/teyckmans/kuberig/blob/master/docs/images/website_logo_transparent_background.png)
+
 [![pipeline status](https://gitlab.com/kuberig/kuberig-dsl/badges/master/pipeline.svg)](https://gitlab.com/kuberig/kuberig-dsl/pipelines)
 
 # kuberig-dsl
