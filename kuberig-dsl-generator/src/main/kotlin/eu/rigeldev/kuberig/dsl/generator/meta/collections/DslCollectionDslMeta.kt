@@ -28,7 +28,7 @@ abstract class DslCollectionDslMeta<AM : DslAttributeMeta>(val type : DslTypeNam
     abstract fun itemType() : DslTypeName
 
     fun complexItemType() : Boolean {
-        return this.itemType().requiresImport()
+        return this.itemType().requiresImport() && this.itemType().isNotPlatformType()
     }
 
     private fun itemTypeSuffix() : String {

@@ -60,10 +60,10 @@ class KotlinDslRootsGenerator(private val classWriterProducer : KotlinClassWrite
                 classWriter.typeMethod(
                     methodName = subName,
                     methodParameters = listOf(
-                        Pair("init","${subContainerType.typeShortName()}.() -> Unit")
+                        Pair("init","${classWriter.kotlinSafe(subContainerType.typeShortName())}.() -> Unit")
                     ),
                     methodCode = listOf(
-                        "this.$subName.init()"
+                        "this.${classWriter.kotlinSafe(subName)}.init()"
                     ),
                     methodTypeDependencies = listOf(
                         subContainerType.absoluteName

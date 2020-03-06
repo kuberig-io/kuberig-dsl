@@ -137,10 +137,27 @@ class KotlinClassWriter(private val typeName : DslTypeName,
             return name
         }
 
-        return if (name.startsWith('$')  || name.contains('-') || hardKeywords.contains(name))  {
+
+
+        return if (name.startsWith('$') || hardKeywords.contains(name))  {
             "`$name`"
         } else {
-            name
+            val nameCharsIterator = name.toCharArray().iterator()
+            var camelCasedName = ""
+
+            while (nameCharsIterator.hasNext()) {
+                val nextChar = nameCharsIterator.nextChar()
+
+                if (nextChar == '-') {
+                    if (nameCharsIterator.hasNext()) {
+                        camelCasedName += nameCharsIterator.nextChar().toUpperCase()
+                    }
+                } else {
+                    camelCasedName += nextChar
+                }
+            }
+
+            camelCasedName
         }
     }
 

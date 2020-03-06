@@ -43,6 +43,8 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
 
     var showIgnoredRefModels : Boolean = false
 
+    private val additionalPropertyDefinitions = mutableMapOf<String, DslClassInfo>()
+
     override fun provide(): DslMeta {
         this.spec = SwaggerParser().read(swaggerFile.absolutePath)
 
@@ -61,6 +63,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         }
 
         this.processDefinitions()
+        this.processAdditionalDefinitions()
 
         return dslMeta
     }
@@ -69,7 +72,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
 
         spec.definitions.forEach { name, definition ->
             if (definition is ModelImpl) {
-                generateDslClass(name, definition)
+                generateDslClass(name, DslClassInfoModelImplAdapter.toDslClassInfo(definition))
             } else if (definition is RefModel) {
                 // the description from the swagger file is not available
                 // because the swagger parser does not allow a description on a RefModel
@@ -87,31 +90,59 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
 
     }
 
-    private fun generateDslClass(absoluteName: String, model: ModelImpl) {
-        if (model.type == "object" || (model.properties != null && model.properties.isNotEmpty())) {
-            generateDslClassInternal(absoluteName, model)
-        } else if (model.type == "string") {
-            generateDslClassInternal(absoluteName, model)
+    /**
+     * CRD definitions do not always provide dedicated definitions for objects.
+     *
+     * During generation we detect these 'missing' models and generate them after the main definitions are processed.
+     *
+     * As this can be a recursive problem, generating the 'missing' models is tried until no new 'missing' definitions
+     * are added during a generate DSL class iteration.
+     */
+    private fun processAdditionalDefinitions() {
+        var definitionsCompensatedCount = 0
+
+        while (this.additionalPropertyDefinitions.isNotEmpty()) {
+
+            val toProcess = mutableMapOf<String, DslClassInfo>()
+            toProcess.putAll(this.additionalPropertyDefinitions)
+            this.additionalPropertyDefinitions.clear()
+
+            toProcess.forEach { (name, dslClassInfo) ->
+                generateDslClass(name, dslClassInfo)
+            }
+
+            definitionsCompensatedCount += toProcess.size
+
+        }
+
+        println("[WARNING] Compensated for $definitionsCompensatedCount missing definitions, please contact the CRD creators to add definitions for every object model they use.")
+    }
+
+    private fun generateDslClass(absoluteName: String, dslClassInfo: DslClassInfo) {
+        if (dslClassInfo.type == "object" || dslClassInfo.properties.isNotEmpty()) {
+            generateDslClassInternal(absoluteName, dslClassInfo)
+        } else if (dslClassInfo.type == "string") {
+            generateDslClassInternal(absoluteName, dslClassInfo)
         } else {
-            if (model.description != null && !model.description.startsWith("Deprecated")) {
-                generateDslClassInternal(absoluteName, model)
+            if (dslClassInfo.description != null && !dslClassInfo.description.startsWith("Deprecated")) {
+                generateDslClassInternal(absoluteName, dslClassInfo)
             } else {
                 println("[SKIPPED] $absoluteName is not an object")
             }
         }
     }
 
-    private fun generateDslClassInternal(rawName: String, model: ModelImpl) {
+    private fun generateDslClassInternal(rawName: String, dslClassInfo: DslClassInfo) {
         val absoluteName = rawName.replace('-', '.')
 
         val packageName = this.packageName(absoluteName)
         val name = this.className(absoluteName)
-        val documentation = model.description ?: ""
+        val documentation = dslClassInfo.description ?: ""
 
 
-        if (model.type == "object" || (model.properties != null && model.properties.isNotEmpty())) {
-            val typeDependencies = determineModelTypeDependencies(model)
-            val attributes = determineModelAttributes(model)
+        if (dslClassInfo.type == "object" || dslClassInfo.properties.isNotEmpty()) {
+            val typeDependencies = determineModelTypeDependencies(dslClassInfo, absoluteName)
+            val attributes = determineModelAttributes(dslClassInfo, absoluteName)
 
             this.dslMeta.registerType(
                 DslObjectTypeMeta(
@@ -124,10 +155,10 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
                 )
             )
         }
-        else if (model.type == "string") {
+        else if (dslClassInfo.type == "string") {
 
             when {
-                model.format == null -> this.dslMeta.registerType(
+                dslClassInfo.format == null -> this.dslMeta.registerType(
                     DslContainerTypeMeta(
                         absoluteName,
                         packageName,
@@ -137,7 +168,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
                         DslTypeName("String")
                     )
                 )
-                model.format == "date-time" -> {
+                dslClassInfo.format == "date-time" -> {
                     val containedType = DslTypeName("java.time.ZonedDateTime")
                     this.dslMeta.registerType(
                         DslContainerTypeMeta(
@@ -150,10 +181,10 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
                         )
                     )
                 }
-                model.format.contains("-or-") -> {
+                dslClassInfo.format.contains("-or-") -> {
                     val sealedTypes = mutableMapOf<String, DslTypeName>()
 
-                    val splits = model.format.split("-or-")
+                    val splits = dslClassInfo.format.split("-or-")
 
                     for (split in splits) {
                         var valueType = ""
@@ -182,7 +213,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
                         )
                     )
                 }
-                else -> println("[SKIPPED] $absoluteName don't know how to handle format: ${model.format}")
+                else -> println("[SKIPPED] $absoluteName don't know how to handle format: ${dslClassInfo.format}")
             }
 
         }
@@ -198,101 +229,92 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
             )
         }
 
-        this.registerModelKinds(model, absoluteName)
+        this.registerModelKinds(dslClassInfo, absoluteName)
     }
 
-    private fun determineModelTypeDependencies(model: ModelImpl): Set<DslTypeName> {
+    private fun determineModelTypeDependencies(dslClassInfo: DslClassInfo, absoluteName: String): Set<DslTypeName> {
         val typeDependencies = mutableSetOf<DslTypeName>()
 
-        if (model.properties != null) {
-            model.properties.forEach { _, property ->
+        dslClassInfo.properties.forEach { name, property ->
 
-                var typeDependency: DslTypeName? = null
-                when {
-                    isObjectProperty(property) -> typeDependency = this.kotlinTypeAbsolute(property)
-                    isListProperty(property) -> typeDependency = this.listPropertyItemType(property)
-                    isMapProperty(property) -> typeDependency = this.mapPropertyValueType(property)
-                }
+            var typeDependency: DslTypeName? = null
+            when {
+                isObjectProperty(property) -> typeDependency = this.kotlinTypeAbsolute(property, absoluteName, name)
+                isListProperty(property) -> typeDependency = this.listPropertyItemType(property, absoluteName, name)
+                isMapProperty(property) -> typeDependency = this.mapPropertyValueType(property, absoluteName, name)
+            }
 
-                if (typeDependency != null && typeDependency.requiresImport()) {
-                    typeDependencies.add(typeDependency)
-                }
+            if (typeDependency != null && typeDependency.requiresImport()) {
+                typeDependencies.add(typeDependency)
             }
         }
 
         return typeDependencies
     }
 
-    private fun determineModelAttributes(model: ModelImpl): Map<String, DslAttributeMeta> {
+    private fun determineModelAttributes(dslClassInfo: DslClassInfo, absoluteName: String): Map<String, DslAttributeMeta> {
         val attributes = mutableMapOf<String, DslAttributeMeta>()
 
-        if (model.properties != null) {
-            model.properties.forEach { name, property ->
+        dslClassInfo.properties.forEach { name, property ->
 
-                val documentation = property.description ?: ""
-                val required = this.isPropertyRequired(model, property)
+            val documentation = property.description ?: ""
+            val required = this.isPropertyRequired(dslClassInfo, property)
 
-                if (!documentation.toLowerCase().contains("read-only")) {
-                    if (this.isListProperty(property)) {
-                        val itemType = this.listPropertyItemType(property)
+            if (!documentation.toLowerCase().contains("read-only")) {
+                if (this.isListProperty(property)) {
+                    val itemType = this.listPropertyItemType(property, absoluteName, name)
 
-                        if (itemType != null) {
-                            attributes[name] = DslListAttributeMeta(
-                                name,
-                                documentation,
-                                required,
-                                itemType
-                            )
-                        }
-                    } else if (this.isMapProperty(property)) {
-                        val itemType = this.mapPropertyValueType(property)
+                    if (itemType != null) {
+                        attributes[name] = DslListAttributeMeta(
+                            name,
+                            documentation,
+                            required,
+                            itemType
+                        )
+                    }
+                } else if (this.isMapProperty(property)) {
+                    val itemType = this.mapPropertyValueType(property, absoluteName, name)
 
-                        if (itemType != null) {
-                            attributes[name] = DslMapAttributeMeta(
-                                name,
-                                documentation,
-                                required,
-                                // Swagger file does not provide key type information
-                                // https://swagger.io/docs/specification/data-models/dictionaries/
-                                // fragment: "...OpenAPI lets you define dictionaries where the keys are strings..."
-                                DslTypeName("String"),
-                                itemType
-                            )
-                        }
-                    } else {
-                        val type = this.kotlinTypeAbsolute(property)
+                    if (itemType != null) {
+                        attributes[name] = DslMapAttributeMeta(
+                            name,
+                            documentation,
+                            required,
+                            // Swagger file does not provide key type information
+                            // https://swagger.io/docs/specification/data-models/dictionaries/
+                            // fragment: "...OpenAPI lets you define dictionaries where the keys are strings..."
+                            DslTypeName("String"),
+                            itemType
+                        )
+                    }
+                } else {
+                    val type = this.kotlinTypeAbsolute(property, absoluteName, name)
 
-                        if (type != null) {
-                            attributes[name] = DslObjectAttributeMeta(
+                    if (type != null) {
+                        attributes[name] = DslObjectAttributeMeta(
                                 name,
                                 documentation,
                                 required,
                                 type
-                            )
-                        }
+                        )
                     }
                 }
-
-
             }
+
         }
 
 
         return attributes
     }
 
-    private fun isPropertyRequired(model: ModelImpl, property: Property): Boolean {
-        return if (model.required == null) {
-            false
-        } else {
-            model.required.contains(property.name)
-        }
+    private fun isPropertyRequired(dslClassInfo: DslClassInfo, property: Property): Boolean {
+        return dslClassInfo.required.contains(property.name)
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun registerModelKinds(model: ModelImpl, absoluteName: String) {
-        if (model.vendorExtensions.containsKey("x-kubernetes-group-version-kind")) {
-            val kinds = model.vendorExtensions["x-kubernetes-group-version-kind"]!! as List<LinkedHashMap<*, *>>
+    private fun registerModelKinds(dslClassInfo: DslClassInfo, absoluteName: String) {
+        if (dslClassInfo.vendorExtensions.containsKey("x-kubernetes-group-version-kind")) {
+            val kinds = dslClassInfo.vendorExtensions["x-kubernetes-group-version-kind"]!! as List<LinkedHashMap<*, *>>
 
             kinds.forEach { groupVersionKind ->
                 val normalizedGroupVersionKind = groupVersionKind.mapKeys { (it.key as String).toLowerCase() }
@@ -326,11 +348,11 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         return property is ArrayProperty
     }
 
-    private fun listPropertyItemType(property: Property): DslTypeName? {
+    private fun listPropertyItemType(property: Property, owningTypeName: String, listPropertyName: String): DslTypeName? {
         if (isListProperty(property)) {
             val listProperty = property as ArrayProperty
 
-            return this.kotlinTypeAbsolute(listProperty.items)
+            return this.kotlinTypeAbsolute(listProperty.items, owningTypeName, listPropertyName + "Item")
         } else {
             throw IllegalArgumentException("property is not of correct type!" + property::javaClass)
         }
@@ -340,14 +362,14 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         return property is MapProperty
     }
 
-    private fun mapPropertyValueType(property: Property): DslTypeName? {
+    private fun mapPropertyValueType(property: Property, owningTypeName: String, mapPropertyName: String): DslTypeName? {
         if (isMapProperty(property)) {
             val mapProperty = property as MapProperty
 
             return if (this.isListProperty(mapProperty.additionalProperties)) {
-                this.listPropertyItemType(mapProperty.additionalProperties)
+                this.listPropertyItemType(mapProperty.additionalProperties, owningTypeName, mapPropertyName + "Value")
             } else {
-                this.kotlinTypeAbsolute(mapProperty.additionalProperties)
+                this.kotlinTypeAbsolute(mapProperty.additionalProperties, owningTypeName, mapPropertyName + "Value")
             }
 
         } else {
@@ -355,7 +377,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         }
     }
 
-    private fun kotlinTypeAbsolute(property: Property): DslTypeName? {
+    private fun kotlinTypeAbsolute(property: Property, owningTypeName: String, owningAttributeName: String): DslTypeName? {
         var propertyType = ""
 
         when (property) {
@@ -371,10 +393,33 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
                 }
             is LongProperty -> propertyType = "Long"
             is IntegerProperty -> propertyType = "Int"
+            is BaseIntegerProperty -> propertyType = "Int"
             is BooleanProperty -> propertyType = "Boolean"
             is DoubleProperty -> propertyType = "Double"
+            is DateTimeProperty -> propertyType = "java.time.ZonedDateTime"
             is ArrayProperty -> throw IllegalStateException("should not be called for ArrayProperty")
             is MapProperty -> throw IllegalStateException("should not be called for MapProperty")
+            // TODO this is a fallback - not sure what type will actually work.
+            is UntypedProperty -> propertyType = "String"
+            is ObjectProperty -> {
+                if (property.name == null) {
+                    /*
+                    Here we start compensating for missing definitions.
+
+                    This is needed because CRD definitions do not always model every object to a dedicated model
+                    in the spec.
+
+                    This basically means they have types where they do not specify a name for.
+                    Even if it is used in multiple places and even if the type exists in the standard platform types
+                    they do not always reference them.
+
+
+                     */
+                    propertyType = owningTypeName + owningAttributeName.capitalize()
+                    val additionalDslClassInfo = DslClassInfoObjectPropertyAdapter.toDslClassInfo(property)
+                    this.additionalPropertyDefinitions[propertyType] = additionalDslClassInfo
+                }
+            }
             else -> println("[WARN] unhandled property ${property.name} of type ${property.type}")
         }
 

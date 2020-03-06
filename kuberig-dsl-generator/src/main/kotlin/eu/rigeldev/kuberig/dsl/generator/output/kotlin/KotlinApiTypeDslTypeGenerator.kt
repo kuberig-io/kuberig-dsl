@@ -362,7 +362,7 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                 }
                 else if (attributeMeta is DslObjectAttributeMeta) {
 
-                    if (attributeMeta.absoluteType.requiresImport()) {
+                    if (attributeMeta.absoluteType.requiresImport() && attributeMeta.absoluteType.isNotPlatformType()) {
 
                         val declarationType = DslTypeName(attributeMeta.absoluteType.absoluteName + "Dsl")
 

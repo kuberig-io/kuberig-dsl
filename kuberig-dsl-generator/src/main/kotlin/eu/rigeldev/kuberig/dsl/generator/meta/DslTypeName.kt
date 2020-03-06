@@ -28,6 +28,10 @@ class DslTypeName(rawAbsoluteName : String) {
         return this.dottedName()
     }
 
+    fun isNotPlatformType(): Boolean {
+        return !absoluteName.startsWith("java")
+    }
+
     fun packageName() : String {
         return if (this.requiresImport()) {
             val splits = absoluteName.split(".")

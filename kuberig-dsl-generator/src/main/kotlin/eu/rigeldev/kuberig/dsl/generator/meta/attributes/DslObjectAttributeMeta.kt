@@ -33,7 +33,7 @@ class DslObjectAttributeMeta(
     }
 
     override fun toValueConstructorSuffix(): String {
-        return if (this.absoluteType.requiresImport()) {
+        return if (this.absoluteType.requiresImport() && this.absoluteType.isNotPlatformType()) {
             return if (super.isOptional()) {
                 "?.toValue()"
             } else {
