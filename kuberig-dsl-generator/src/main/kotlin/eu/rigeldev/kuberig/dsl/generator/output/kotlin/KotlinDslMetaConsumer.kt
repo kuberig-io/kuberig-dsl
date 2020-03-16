@@ -52,7 +52,7 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
         for (typeMeta in dslMeta.typeMeta.values) {
             if (typeMeta is DslObjectTypeMeta) {
 
-                typeMeta.attributes.minus("status").forEach { attributeName, attributeMeta ->
+                typeMeta.attributes.minus("status").forEach { (attributeName, attributeMeta) ->
                     val plural = this.isCollectionAttributeNamePlural(attributeName)
 
                     if (attributeMeta is DslListAttributeMeta) {

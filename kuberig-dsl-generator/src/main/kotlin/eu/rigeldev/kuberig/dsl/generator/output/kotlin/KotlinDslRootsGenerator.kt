@@ -46,7 +46,7 @@ class KotlinDslRootsGenerator(private val classWriterProducer : KotlinClassWrite
             )
 
             // dsl attributes and methods for sub containers
-            container.subContainers.forEach { subName, subContainer ->
+            container.subContainers.forEach { (subName, subContainer) ->
                 val subContainerType = this.typeName(subContainer, typeName.packageName())
 
                 classWriter.typeAttribute(
@@ -72,7 +72,7 @@ class KotlinDslRootsGenerator(private val classWriterProducer : KotlinClassWrite
             }
 
             // dsl methods for kinds
-            container.kinds.forEach { _, kindMeta ->
+            container.kinds.forEach { (_, kindMeta) ->
                 val kindType = kindMeta.kindType().typeShortName()
                 val kindMethodName = kindMeta.methodName()
 
@@ -111,7 +111,7 @@ class KotlinDslRootsGenerator(private val classWriterProducer : KotlinClassWrite
         }
 
         // generate sub containers
-        container.subContainers.forEach { _, subContainer ->
+        container.subContainers.forEach { (_, subContainer) ->
             this.generateDslRootType(
                 this.typeName(subContainer, typeName.packageName()),
                 subContainer

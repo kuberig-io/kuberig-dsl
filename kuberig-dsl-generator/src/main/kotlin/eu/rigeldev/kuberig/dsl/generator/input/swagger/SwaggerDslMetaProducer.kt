@@ -69,7 +69,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         this.findWritableKindUrls()
         this.findWritableKindTypes()
 
-        this.processKindTypes();
+        this.processKindTypes()
         this.processAdditionalDefinitions()
 
         return dslMeta
@@ -94,6 +94,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         println("Found #${this.dslMeta.writeableKindUrls.size} writeable kinds...")
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun findWritableKindTypes() {
         this.dslMeta.writeableKindUrls.keys.forEach { kind ->
             val types = mutableListOf<String>()
@@ -150,7 +151,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
 
                 val definition = spec.definitions[typeName]!!
 
-                processDefinition(typeName, definition, true)
+                processDefinition(typeName, definition)
 
                 dslMeta.registerKind(
                         DslKindMeta(
@@ -164,11 +165,11 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         }
     }
 
-    private fun processDefinition(typeName: String, definition: Model, kindType: Boolean) {
+    private fun processDefinition(typeName: String, definition: Model) {
         println("[PROCESS] $typeName")
 
         if (definition is ModelImpl) {
-            generateDslClass(typeName, DslClassInfoModelImplAdapter.toDslClassInfo(definition), kindType)
+            generateDslClass(typeName, DslClassInfoModelImplAdapter.toDslClassInfo(definition), true)
         } else if (definition is RefModel) {
             // the description from the swagger file is not available
             // because the swagger parser does not allow a description on a RefModel
@@ -342,7 +343,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
     private fun determineModelTypeDependencies(dslClassInfo: DslClassInfo, absoluteName: String): Set<String> {
         val typeDependencies = mutableSetOf<String>()
 
-        dslClassInfo.properties.forEach { name, property ->
+        dslClassInfo.properties.forEach { (name, property) ->
 
             var typeDependency: String? = null
             when {

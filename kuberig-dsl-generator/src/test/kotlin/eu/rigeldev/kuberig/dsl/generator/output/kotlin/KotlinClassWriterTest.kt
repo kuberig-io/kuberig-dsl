@@ -15,7 +15,7 @@ class KotlinClassWriterTest {
         // text checks
         assertEquals("_test", writer.kotlinSafe("_test"))
         assertEquals("`${'$'}test`", writer.kotlinSafe("${'$'}test"))
-        assertEquals("`ext-kubernetes-attr`", writer.kotlinSafe("ext-kubernetes-attr"))
+        assertEquals("extKubernetesAttr", writer.kotlinSafe("ext-kubernetes-attr"))
         assertEquals("metadata", writer.kotlinSafe("metadata"))
         assertEquals("some2", writer.kotlinSafe("some2"))
 
