@@ -16,13 +16,16 @@
 
 package eu.rigeldev.kuberig.dsl.generator.output.kotlin
 
+import eu.rigeldev.kuberig.dsl.generator.meta.DslMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.DslTypeName
 import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslListAttributeMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslMapAttributeMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslObjectAttributeMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.types.*
 
-class KotlinApiTypeGenerator(private val classWriterProducer : KotlinClassWriterProducer) {
+class KotlinApiTypeGenerator(
+    private val classWriterProducer : KotlinClassWriterProducer,
+    private val dslMeta: DslMeta) {
 
     fun generateApiType(typeName : DslTypeName, typeMeta : DslTypeMeta) {
 
@@ -39,10 +42,24 @@ class KotlinApiTypeGenerator(private val classWriterProducer : KotlinClassWriter
     private fun generateObjectType(typeName : DslTypeName, typeMeta: DslObjectTypeMeta) {
         val kotlinClassWriter = KotlinClassWriter(typeName, this.classWriterProducer)
 
+        if (this.dslMeta.resourceMetadataType.absoluteName == typeName.absoluteName) {
+            kotlinClassWriter.typeParent(
+                DslTypeName("eu.rigeldev.kuberig.dsl.BasicMeta"),
+                listOf("annotations", "labels", "name", "namespace")
+            )
+        }
+
+        if (typeMeta.kindType) {
+            kotlinClassWriter.typeParent(
+                DslTypeName("eu.rigeldev.kuberig.dsl.KubernetesResource"),
+                listOf("apiVersion", "kind", "metadata")
+            )
+        }
+
         kotlinClassWriter.use {classWriter ->
             classWriter.typeDocumentation(typeMeta.description)
 
-            typeMeta.attributes.minus("status").forEach { attributeName, attributeMeta ->
+            typeMeta.attributes.minus("status").forEach { (attributeName, attributeMeta) ->
 
                 when (attributeMeta) {
                     is DslObjectAttributeMeta -> {
@@ -75,7 +92,7 @@ class KotlinApiTypeGenerator(private val classWriterProducer : KotlinClassWriter
                             declarationTypeOverride = attributeMeta.attributeDeclarationType()
                         )
                     }
-                    else -> IllegalStateException("Don't know what to do with " + attributeMeta::javaClass)
+                    else -> throw IllegalStateException("Don't know what to do with " + attributeMeta::javaClass)
                 }
             }
         }
@@ -157,7 +174,7 @@ class KotlinApiTypeGenerator(private val classWriterProducer : KotlinClassWriter
             )
 
             // the sub types
-            typeMeta.sealedTypes.forEach { name, valueTypeName ->
+            typeMeta.sealedTypes.forEach { (name, valueTypeName) ->
                 val subTypeName = DslTypeName(typeMeta.absoluteName + "_$name")
 
                 classWriter.push(subTypeName)
@@ -193,7 +210,7 @@ class KotlinApiTypeGenerator(private val classWriterProducer : KotlinClassWriter
             )
 
             serializerCode.add("when (value) {")
-            typeMeta.sealedTypes.forEach { name, valueTypeName ->
+            typeMeta.sealedTypes.forEach { (name, valueTypeName) ->
                 val subTypeName = DslTypeName(typeMeta.absoluteName + "_$name")
 
                 serializerTypeDependencies.add(subTypeName.absoluteName)

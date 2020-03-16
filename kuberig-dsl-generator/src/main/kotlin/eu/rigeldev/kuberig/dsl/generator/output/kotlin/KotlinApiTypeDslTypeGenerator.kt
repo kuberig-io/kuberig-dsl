@@ -93,7 +93,7 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                 nullable = true
             )
 
-            typeMeta.sealedTypes.forEach { name, typeName ->
+            typeMeta.sealedTypes.forEach { (name, typeName) ->
 
                 classWriter.typeMethod(
                     methodName = "value",
@@ -187,15 +187,25 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
 
             classWriter.typeAnnotation("eu.rigeldev.kuberig.dsl.KubeRigDslMarker")
 
-            classWriter.typeInterface(
-                "DslType<${typeMeta.name}>",
-                listOf(
-                    "eu.rigeldev.kuberig.dsl.DslType",
-                    typeMeta.absoluteName
+            if (typeMeta.kindType) {
+                classWriter.typeInterface(
+                    "KubernetesResourceDslType<${typeMeta.name}>",
+                    listOf(
+                        "eu.rigeldev.kuberig.dsl.KubernetesResourceDslType",
+                        typeMeta.absoluteName
+                    )
                 )
-            )
+            } else {
+                classWriter.typeInterface(
+                    "DslType<${typeMeta.name}>",
+                    listOf(
+                        "eu.rigeldev.kuberig.dsl.DslType",
+                        typeMeta.absoluteName
+                    )
+                )
+            }
 
-            typeMeta.attributes.minus(attributeIgnores).forEach { rawAttributeName, attributeMeta ->
+            typeMeta.attributes.minus(attributeIgnores).forEach { (rawAttributeName, attributeMeta) ->
 
                 val attributeName = classWriter.kotlinSafe(rawAttributeName)
 

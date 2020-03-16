@@ -85,7 +85,7 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
     }
 
     private fun generateTypeClass(typeMeta: DslTypeMeta) {
-        KotlinApiTypeGenerator(this.classWriterProducer)
+        KotlinApiTypeGenerator(this.classWriterProducer, this.dslMeta)
             .generateApiType(DslTypeName(typeMeta.absoluteName), typeMeta)
     }
 

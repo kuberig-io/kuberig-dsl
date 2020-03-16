@@ -18,7 +18,8 @@ package eu.rigeldev.kuberig.dsl.generator.meta
 
 class DslTypeName(rawAbsoluteName : String) {
 
-    val absoluteName : String = rawAbsoluteName.replace("-", "")
+    // compensate for apiextensions-apiserver in package name
+    val absoluteName : String = rawAbsoluteName.replace('-', '.')
 
     private fun dottedName() : Boolean {
         return absoluteName.contains('.')

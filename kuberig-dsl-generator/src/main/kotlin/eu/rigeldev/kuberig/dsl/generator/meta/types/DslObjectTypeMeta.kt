@@ -28,5 +28,6 @@ class DslObjectTypeMeta(
     name: String,
     description: String,
     typeDependencies: Set<DslTypeName>,
-    val attributes: Map<String, DslAttributeMeta>
+    val attributes: Map<String, DslAttributeMeta>,
+    val kindType: Boolean
 ) : DslTypeMeta(absoluteName, packageName, name, description, typeDependencies)

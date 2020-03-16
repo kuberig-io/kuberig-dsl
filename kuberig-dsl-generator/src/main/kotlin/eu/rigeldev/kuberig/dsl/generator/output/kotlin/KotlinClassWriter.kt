@@ -84,6 +84,9 @@ class KotlinClassWriter(private val typeName : DslTypeName,
         val typeAnnotations = mutableSetOf<String>()
         var typeDocumentation = ""
 
+        var parentType: DslTypeName? = null
+        var parentAttributeNames = listOf<String>()
+
         var interfaceType = ""
 
         val typeConstructorParameters = mutableListOf<String>()
@@ -166,9 +169,15 @@ class KotlinClassWriter(private val typeName : DslTypeName,
                                          typeDeclaration : String,
                                          defaultValue : String,
                                          nullable : Boolean = false) {
+        val filteredModifiers = if (this.current.parentAttributeNames.contains(attributeName)) {
+            modifiers.minus("val")
+        } else {
+            modifiers
+        }
+
         this.current.typeConstructorParameters.add(
             declaration(
-                modifiers,
+                filteredModifiers,
                 attributeName,
                 typeDeclaration,
                 defaultValue,
@@ -200,6 +209,13 @@ class KotlinClassWriter(private val typeName : DslTypeName,
         declarationTypes.forEach(this::typeImport)
 
         this.current.interfaceType = interfaceDeclaration
+    }
+
+    fun typeParent(parentType: DslTypeName, parentAttributeNames: List<String>) {
+        this.typeImport(parentType)
+
+        this.current.parentType = parentType
+        this.current.parentAttributeNames = parentAttributeNames
     }
 
     private fun declaration(modifiers : List<String>,
@@ -479,6 +495,21 @@ class KotlinClassWriter(private val typeName : DslTypeName,
 
             if (classDetail.interfaceType != "") {
                 this.writer.write(" : ${classDetail.interfaceType}")
+            }
+
+            if (classDetail.parentType != null) {
+                this.writer.write(" : ${classDetail.parentType!!.typeShortName()}(")
+                val parentAttributeNamesIterator = classDetail.parentAttributeNames.iterator()
+                while (parentAttributeNamesIterator.hasNext()) {
+                    val nextParentAttributeName = parentAttributeNamesIterator.next()
+
+                    this.writer.write(nextParentAttributeName)
+
+                    if (parentAttributeNamesIterator.hasNext()) {
+                        this.writer.write(", ")
+                    }
+                }
+                this.writer.write(")")
             }
 
             if (classDetail.typeAttributeDeclarations.isNotEmpty() || classDetail.typeMethodDeclarations.isNotEmpty()) {

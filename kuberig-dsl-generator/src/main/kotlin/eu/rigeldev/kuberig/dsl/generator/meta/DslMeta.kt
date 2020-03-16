@@ -20,12 +20,20 @@ import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslAttributeMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.collections.DslListDslMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.collections.DslMapDslMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.kinds.DslKindMeta
+import eu.rigeldev.kuberig.dsl.generator.meta.kinds.Kind
+import eu.rigeldev.kuberig.dsl.generator.meta.kinds.KindTypes
+import eu.rigeldev.kuberig.dsl.generator.meta.kinds.KindUrl
 import eu.rigeldev.kuberig.dsl.generator.meta.types.DslTypeMeta
 
 class DslMeta(val platformSpecifics: DslPlatformSpecifics) {
     val typeMeta = mutableMapOf<String, DslTypeMeta>()
 
     val kindMeta = mutableListOf<DslKindMeta>()
+
+    lateinit var resourceMetadataType : DslTypeName
+
+    val writeableKindUrls = mutableMapOf<Kind, KindUrl>()
+    val writeableKindTypes = mutableMapOf<Kind, KindTypes>()
 
     private val listDslTypes = mutableMapOf<String, DslListDslMeta>()
     private val mapDslTypes = mutableMapOf<String, DslMapDslMeta>()
@@ -42,6 +50,28 @@ class DslMeta(val platformSpecifics: DslPlatformSpecifics) {
         return this.platformSpecifics
             .packageNameStarts.stream()
             .anyMatch { packageNameStart -> absoluteName.startsWith(packageNameStart) }
+    }
+
+    fun kindType(absoluteName: String): Kind? {
+        var kind : Kind? = null
+
+        val kindTypesIterator = this.writeableKindTypes.values.iterator()
+
+        while (kind == null && kindTypesIterator.hasNext()) {
+            val kindTypes = kindTypesIterator.next()
+
+            val typesIterator = kindTypes.types.iterator()
+
+            while (kind == null && typesIterator.hasNext()) {
+                val type = typesIterator.next()
+
+                if (type == absoluteName) {
+                    kind = kindTypes.kind
+                }
+            }
+        }
+
+        return kind
     }
 
     fun isPlatformApiType(dslTypeName: DslTypeName) : Boolean {
