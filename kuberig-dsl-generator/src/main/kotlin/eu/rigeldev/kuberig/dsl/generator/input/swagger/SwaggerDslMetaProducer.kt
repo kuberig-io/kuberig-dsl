@@ -69,7 +69,11 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         this.findWritableKindUrls()
         this.findWritableKindTypes()
 
+        check(this.dslMeta.writeableKindTypes.isNotEmpty()) { "No writeable kinds found, kubernetes metadata missing" }
+
+        this.findFullMetadataType()
         this.processKindTypes()
+        this.processDefinitions()
         this.processAdditionalDefinitions()
 
         return dslMeta
@@ -131,25 +135,47 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         )
     }
 
+    /**
+     * Determine the actual type of the metadata attribute of a Kind.
+     */
+    private fun findFullMetadataType() {
+        var fullMetadataTypename : DslTypeName? = null
+
+        val kindTypeIterator = this.dslMeta.writeableKindTypes.values.iterator()
+
+        while (fullMetadataTypename == null && kindTypeIterator.hasNext()) {
+            val kindType = kindTypeIterator.next()
+
+            var typeIndex = 0
+            while (fullMetadataTypename == null && typeIndex < kindType.types.size) {
+
+                val definition = spec.definitions[kindType.types[typeIndex]]!!
+
+                val metadataAttribute = definition.properties["metadata"]
+
+                if (metadataAttribute != null) {
+                    if (metadataAttribute is RefProperty) {
+                        fullMetadataTypename = DslTypeName(metadataAttribute.simpleRef)
+                    }
+                }
+
+                typeIndex++
+            }
+        }
+
+        check(fullMetadataTypename != null) {
+            "Implementation type for eu.rigeldev.kuberig.dsl.model.FullMetadata could not be determined. Unsupported api specification."
+        }
+
+        this.dslMeta.resourceMetadataType = fullMetadataTypename
+    }
+
     private fun processKindTypes() {
-
-        check(this.dslMeta.writeableKindTypes.isNotEmpty()) { "No writeable kinds found, no DSL code to generate." }
-
-        // determine the actual type of the metadata attribute of a Kind
-        val firstKindTypes = this.dslMeta.writeableKindTypes.values.toList()[0]
-        val firstTypeName = firstKindTypes.types[0]
-        val firstDefinition = spec.definitions[firstTypeName]!!
-        val metadataAttribute = firstDefinition.properties["metadata"]!! as RefProperty
-        this.dslMeta.resourceMetadataType = DslTypeName(metadataAttribute.simpleRef)
 
         // create type-meta for kind classes
         this.dslMeta.writeableKindTypes.values.forEach { kindTypes ->
 
             kindTypes.types.forEach { rawName ->
-
-                val definition = spec.definitions[rawName]!!
-
-                processDefinition(rawName, definition)
 
                 dslMeta.registerKind(
                         DslKindMeta(
@@ -163,18 +189,26 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         }
     }
 
-    private fun processDefinition(typeName: String, definition: Model) {
-        println("[PROCESS] $typeName")
+    private fun processDefinitions() {
+        spec.definitions.forEach { rawName, definition ->
+            processDefinition(rawName, definition)
+        }
+    }
+
+    private fun processDefinition(rawName: String, definition: Model) {
+        println("[PROCESS] $rawName")
 
         if (definition is ModelImpl) {
-            generateDslClass(typeName, DslClassInfoModelImplAdapter.toDslClassInfo(definition), true)
+            val kindType = this.dslMeta.kindType(rawName) != null
+
+            generateDslClass(rawName, DslClassInfoModelImplAdapter.toDslClassInfo(definition), kindType)
         } else if (definition is RefModel) {
             // the description from the swagger file is not available
             // because the swagger parser does not allow a description on a RefModel
 
             // nothing to do - definition is deprecated, show message if toggled.
             if (showIgnoredRefModels) {
-                println("Ignoring definition $typeName use ${definition.simpleRef} instead.")
+                println("Ignoring definition $rawName use ${definition.simpleRef} instead.")
             }
 
         } else {
