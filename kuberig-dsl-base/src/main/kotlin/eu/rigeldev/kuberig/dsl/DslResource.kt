@@ -16,9 +16,11 @@
 
 package eu.rigeldev.kuberig.dsl
 
+import eu.rigeldev.kuberig.dsl.model.BasicResource
+
 /**
  * A DSL resource
  */
-class DslResource<T : KubernetesResource>(val alias : String, val dslType : KubernetesResourceDslType<T>) {
+class DslResource<T : BasicResource>(val alias : String, val dslType : KubernetesResourceDslType<T>) {
 
 }

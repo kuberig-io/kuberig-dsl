@@ -51,19 +51,19 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
             classWriter.typeAnnotation("eu.rigeldev.kuberig.dsl.KubeRigDslMarker")
 
             classWriter.typeInterface(
-                "DslType<${typeMeta.name}>",
+                "DslType<${typeMeta.typeName.typeShortName()}>",
                 listOf(
                     "eu.rigeldev.kuberig.dsl.DslType",
-                    typeMeta.absoluteName
+                    typeMeta.typeName.absoluteName
                 )
             )
 
             classWriter.typeMethod(
                 modifiers = listOf("override"),
                 methodName = "toValue",
-                methodReturnType = typeMeta.name,
+                methodReturnType = typeMeta.typeName.typeShortName(),
                 methodCode = listOf(
-                    "return ${typeMeta.name}()"
+                    "return ${typeMeta.typeName.typeShortName()}()"
                 )
             )
 
@@ -78,17 +78,17 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
             classWriter.typeAnnotation("eu.rigeldev.kuberig.dsl.KubeRigDslMarker")
 
             classWriter.typeInterface(
-                "DslType<${typeMeta.name}>",
+                "DslType<${typeMeta.typeName.typeShortName()}>",
                 listOf(
                     "eu.rigeldev.kuberig.dsl.DslType",
-                    typeMeta.absoluteName
+                    typeMeta.typeName.absoluteName
                 )
             )
 
             classWriter.typeAttribute(
                 listOf("private", "var"),
                 "value",
-                DslTypeName(typeMeta.absoluteName),
+                DslTypeName(typeMeta.typeName.absoluteName),
                 "null",
                 nullable = true
             )
@@ -101,7 +101,7 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                         Pair("value", typeName.typeShortName())
                     ),
                     methodCode = listOf(
-                        "this.value = ${typeMeta.name}_$name(value)"
+                        "this.value = ${typeMeta.typeName.typeShortName()}_$name(value)"
                     )
                 )
 
@@ -110,7 +110,7 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
             classWriter.typeMethod(
                 modifiers = listOf("override"),
                 methodName = "toValue",
-                methodReturnType = typeMeta.name,
+                methodReturnType = typeMeta.typeName.typeShortName(),
                 methodCode = listOf(
                     "return this.value!!"
                 )
@@ -127,10 +127,10 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
             classWriter.typeAnnotation("eu.rigeldev.kuberig.dsl.KubeRigDslMarker")
 
             classWriter.typeInterface(
-                "DslType<${typeMeta.name}>",
+                "DslType<${typeMeta.typeName.typeShortName()}>",
                 listOf(
                     "eu.rigeldev.kuberig.dsl.DslType",
-                    typeMeta.absoluteName
+                    typeMeta.typeName.absoluteName
                 )
             )
 
@@ -158,7 +158,7 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
 
             } else {
                 classWriter.typeMethod(
-                    methodName = typeMeta.name.toLowerCase(),
+                    methodName = typeMeta.typeName.typeShortName().toLowerCase(),
                     methodParameters = listOf(
                         Pair("contained", typeMeta.containedType.typeShortName())
                     ),
@@ -171,9 +171,9 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
             classWriter.typeMethod(
                 modifiers = listOf("override"),
                 methodName = "toValue",
-                methodReturnType = typeMeta.name,
+                methodReturnType = typeMeta.typeName.typeShortName(),
                 methodCode = listOf(
-                    "return ${typeMeta.name}(this.value!!)"
+                    "return ${typeMeta.typeName.typeShortName()}(this.value!!)"
                 )
             )
 
@@ -189,18 +189,18 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
 
             if (typeMeta.kindType) {
                 classWriter.typeInterface(
-                    "KubernetesResourceDslType<${typeMeta.name}>",
+                    "KubernetesResourceDslType<${typeMeta.typeName.typeShortName()}>",
                     listOf(
                         "eu.rigeldev.kuberig.dsl.KubernetesResourceDslType",
-                        typeMeta.absoluteName
+                        typeMeta.typeName.absoluteName
                     )
                 )
             } else {
                 classWriter.typeInterface(
-                    "DslType<${typeMeta.name}>",
+                    "DslType<${typeMeta.typeName.typeShortName()}>",
                     listOf(
                         "eu.rigeldev.kuberig.dsl.DslType",
-                        typeMeta.absoluteName
+                        typeMeta.typeName.absoluteName
                     )
                 )
             }
@@ -471,7 +471,7 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
 
             val toValueMethodCode = mutableListOf<String>()
 
-            toValueMethodCode.add("return ${typeMeta.name}(")
+            toValueMethodCode.add("return ${typeMeta.typeName.typeShortName()}(")
 
             val toValueAttributeIgnores = mutableListOf<String>()
             toValueAttributeIgnores.addAll(this.attributeIgnores.minus(listOf("kind", "apiVersion")))
@@ -517,7 +517,7 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
             classWriter.typeMethod(
                 modifiers = listOf("override"),
                 methodName = "toValue",
-                methodReturnType = typeMeta.name,
+                methodReturnType = typeMeta.typeName.typeShortName(),
                 methodCode = toValueMethodCode
             )
 
@@ -526,7 +526,7 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
     }
 
     private fun addGeneratorFunction(dslTypeName: DslTypeName, typeMeta: DslTypeMeta, classWriter: KotlinClassWriter) {
-        val declarationType = DslTypeName(typeMeta.absoluteName)
+        val declarationType = DslTypeName(typeMeta.typeName.absoluteName)
 
         classWriter.fileMethod(
             methodName = declarationType.methodName(),

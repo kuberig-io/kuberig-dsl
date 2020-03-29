@@ -42,18 +42,33 @@ class KotlinApiTypeGenerator(
     private fun generateObjectType(typeName : DslTypeName, typeMeta: DslObjectTypeMeta) {
         val kotlinClassWriter = KotlinClassWriter(typeName, this.classWriterProducer)
 
-        if (this.dslMeta.resourceMetadataType.absoluteName == typeName.absoluteName) {
+        val fullMetaDataTypeName = this.dslMeta.resourceMetadataType
+        if (fullMetaDataTypeName.absoluteName == typeName.absoluteName) {
             kotlinClassWriter.typeParent(
-                DslTypeName("eu.rigeldev.kuberig.dsl.BasicMeta"),
-                listOf("annotations", "labels", "name", "namespace")
+                DslTypeName("eu.rigeldev.kuberig.dsl.model.FullMetadata"),
+                listOf("namespace", "name", "annotations", "labels")
             )
         }
 
         if (typeMeta.kindType) {
-            kotlinClassWriter.typeParent(
-                DslTypeName("eu.rigeldev.kuberig.dsl.KubernetesResource"),
-                listOf("apiVersion", "kind", "metadata")
-            )
+            val metadataAttribute = typeMeta.attributes["metadata"]
+            val fullResource = if(metadataAttribute != null) {
+                metadataAttribute.absoluteAttributeDeclarationType().absoluteName == fullMetaDataTypeName.absoluteName
+            } else {
+                false
+            }
+
+            if (fullResource) {
+                kotlinClassWriter.typeParent(
+                        DslTypeName("eu.rigeldev.kuberig.dsl.model.FullResource"),
+                        listOf("kind", "apiVersion", "metadata")
+                )
+            } else {
+                kotlinClassWriter.typeParent(
+                        DslTypeName("eu.rigeldev.kuberig.dsl.model.BasicResource"),
+                        listOf("kind", "apiVersion")
+                )
+            }
         }
 
         kotlinClassWriter.use {classWriter ->
@@ -61,13 +76,15 @@ class KotlinApiTypeGenerator(
 
             typeMeta.attributes.minus("status").forEach { (attributeName, attributeMeta) ->
 
+                val nullable = attributeMeta.isOptional()
+
                 when (attributeMeta) {
                     is DslObjectAttributeMeta -> {
                         classWriter.typeConstructorParameter(
                             listOf("val"),
                             attributeName,
                             attributeMeta.absoluteAttributeDeclarationType(),
-                            nullable = attributeMeta.isOptional()
+                            nullable = nullable
                         )
                     }
                     is DslListAttributeMeta -> {
@@ -77,7 +94,7 @@ class KotlinApiTypeGenerator(
                             listOf("val"),
                             attributeName,
                             attributeMeta.absoluteAttributeDeclarationType(),
-                            nullable = attributeMeta.isOptional(),
+                            nullable = nullable,
                             declarationTypeOverride = attributeMeta.attributeDeclarationType()
                         )
                     }
@@ -88,7 +105,7 @@ class KotlinApiTypeGenerator(
                             listOf("val"),
                             attributeName,
                             attributeMeta.absoluteAttributeDeclarationType(),
-                            nullable = attributeMeta.isOptional(),
+                            nullable = nullable,
                             declarationTypeOverride = attributeMeta.attributeDeclarationType()
                         )
                     }
@@ -101,7 +118,7 @@ class KotlinApiTypeGenerator(
 
     private fun generateContainerType(typeName : DslTypeName, typeMeta: DslContainerTypeMeta) {
         val serializerType = DslTypeName(
-            typeName.packageName() + "." + typeMeta.name + "_Serializer"
+            typeName.packageName() + "." + typeMeta.typeName.typeShortName() + "_Serializer"
         )
 
         val kotlinClassWriter = KotlinClassWriter(typeName, this.classWriterProducer)
@@ -128,7 +145,7 @@ class KotlinApiTypeGenerator(
         kotlinSerializerWriter.use { serializerWriter ->
 
             serializerWriter.typeInterface(
-                "JsonSerializer<${typeMeta.name}>()",
+                "JsonSerializer<${typeMeta.typeName.typeShortName()}>()",
                 listOf(
                     "com.fasterxml.jackson.databind.JsonSerializer"
                 )
@@ -140,7 +157,7 @@ class KotlinApiTypeGenerator(
                 modifiers = listOf("override"),
                 methodName = "serialize",
                 methodParameters = listOf(
-                    Pair("value", "${typeMeta.name}?"),
+                    Pair("value", "${typeMeta.typeName.typeShortName()}?"),
                     Pair("gen", "JsonGenerator?"),
                     Pair("serializers", "SerializerProvider?")
                 ),
@@ -159,7 +176,7 @@ class KotlinApiTypeGenerator(
     private fun generatedSealedType(typeName : DslTypeName, typeMeta: DslSealedTypeMeta) {
 
         val serializerType = DslTypeName(
-            typeName.packageName() + "." + typeMeta.name + "_Serializer"
+            typeName.packageName() + "." + typeMeta.typeName.typeShortName() + "_Serializer"
         )
 
         val kotlinClassWriter = KotlinClassWriter(typeName, this.classWriterProducer, "sealed class")
@@ -175,13 +192,13 @@ class KotlinApiTypeGenerator(
 
             // the sub types
             typeMeta.sealedTypes.forEach { (name, valueTypeName) ->
-                val subTypeName = DslTypeName(typeMeta.absoluteName + "_$name")
+                val subTypeName = DslTypeName(typeMeta.typeName.absoluteName + "_$name")
 
                 classWriter.push(subTypeName)
 
                 classWriter.typeInterface(
-                    "${typeMeta.name}()",
-                    listOf(typeMeta.absoluteName)
+                    "${typeMeta.typeName.typeShortName()}()",
+                    listOf(typeMeta.typeName.absoluteName)
                 )
 
                 classWriter.typeConstructorParameter(
@@ -197,7 +214,7 @@ class KotlinApiTypeGenerator(
         kotlinSerializerWriter.use { serializerWriter ->
 
             serializerWriter.typeInterface(
-                "JsonSerializer<${typeMeta.name}>()",
+                "JsonSerializer<${typeMeta.typeName.typeShortName()}>()",
                 listOf(
                     "com.fasterxml.jackson.databind.JsonSerializer"
                 )
@@ -211,7 +228,7 @@ class KotlinApiTypeGenerator(
 
             serializerCode.add("when (value) {")
             typeMeta.sealedTypes.forEach { (name, valueTypeName) ->
-                val subTypeName = DslTypeName(typeMeta.absoluteName + "_$name")
+                val subTypeName = DslTypeName(typeMeta.typeName.absoluteName + "_$name")
 
                 serializerTypeDependencies.add(subTypeName.absoluteName)
 
@@ -225,7 +242,7 @@ class KotlinApiTypeGenerator(
                 modifiers = listOf("override"),
                 methodName = "serialize",
                 methodParameters = listOf(
-                    Pair("value", "${typeMeta.name}?"),
+                    Pair("value", "${typeMeta.typeName.typeShortName()}?"),
                     Pair("gen", "JsonGenerator?"),
                     Pair("serializers", "SerializerProvider?")
                 ),

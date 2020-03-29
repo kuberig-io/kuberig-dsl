@@ -16,10 +16,9 @@
 
 package eu.rigeldev.kuberig.dsl.generator.meta
 
-class DslTypeName(rawAbsoluteName : String) {
-
+class DslTypeName(val rawName : String) {
     // compensate for apiextensions-apiserver in package name
-    val absoluteName : String = rawAbsoluteName.replace('-', '.')
+    val absoluteName : String = this.rawName.replace('-', '.')
 
     private fun dottedName() : Boolean {
         return absoluteName.contains('.')
@@ -71,5 +70,11 @@ class DslTypeName(rawAbsoluteName : String) {
         return absoluteName.hashCode()
     }
 
+    override fun toString(): String {
+        return absoluteName
+    }
 
+    fun dslTypeName(): DslTypeName {
+        return DslTypeName(rawName + "Dsl")
+    }
 }

@@ -124,13 +124,11 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
 
         val normalizedGroupVersionKind = rawMap.mapKeys { (it.key as String).toLowerCase() }
 
-        val kind = Kind(
+        return Kind(
                 (normalizedGroupVersionKind["group"] ?: error("No group found group-version-kind")) as String,
                 (normalizedGroupVersionKind["kind"] ?: error("No kind found group-version-kind")) as String,
                 (normalizedGroupVersionKind["version"] ?: error("No version found group-version-kind")) as String
         )
-
-        return kind
     }
 
     private fun processKindTypes() {
@@ -147,15 +145,15 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         // create type-meta for kind classes
         this.dslMeta.writeableKindTypes.values.forEach { kindTypes ->
 
-            kindTypes.types.forEach { typeName ->
+            kindTypes.types.forEach { rawName ->
 
-                val definition = spec.definitions[typeName]!!
+                val definition = spec.definitions[rawName]!!
 
-                processDefinition(typeName, definition)
+                processDefinition(rawName, definition)
 
                 dslMeta.registerKind(
                         DslKindMeta(
-                                DslTypeName(typeName),
+                                DslTypeName(rawName),
                                 kindTypes.kind.group,
                                 kindTypes.kind.kind,
                                 kindTypes.kind.version
@@ -176,7 +174,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
 
             // nothing to do - definition is deprecated, show message if toggled.
             if (showIgnoredRefModels) {
-                println("Ignoring definition ${typeName} use ${definition.simpleRef} instead.")
+                println("Ignoring definition $typeName use ${definition.simpleRef} instead.")
             }
 
         } else {
@@ -232,15 +230,12 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
 
     private fun generateDslClassInternal(rawName: String, dslClassInfo: DslClassInfo, kindType: Boolean) {
         val typeName = DslTypeName(rawName)
-        val absoluteName = typeName.absoluteName
 
-        val packageName = typeName.packageName()
-        val name = typeName.typeShortName()
         val documentation = dslClassInfo.description ?: ""
 
         if (dslClassInfo.type == "object" || dslClassInfo.properties.isNotEmpty()) {
-            val typeDependencies = determineModelTypeDependencies(dslClassInfo, absoluteName)
-            val attributes = determineModelAttributes(dslClassInfo, absoluteName)
+            val typeDependencies = determineModelTypeDependencies(dslClassInfo, rawName)
+            val attributes = determineModelAttributes(dslClassInfo, rawName)
 
             typeDependencies.forEach { dependentRawName ->
                 if (!this.dslMeta.typeMeta.containsKey(DslTypeName(dependentRawName).absoluteName)) {
@@ -255,9 +250,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
 
             this.dslMeta.registerType(
                 DslObjectTypeMeta(
-                    absoluteName,
-                    packageName,
-                    name,
+                    typeName,
                     documentation,
                     typeDependencies.map(::DslTypeName).toSet(),
                     attributes,
@@ -270,9 +263,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
             when {
                 dslClassInfo.format == null -> this.dslMeta.registerType(
                     DslContainerTypeMeta(
-                        absoluteName,
-                        packageName,
-                        name,
+                        typeName,
                         documentation,
                         emptySet(),
                         DslTypeName("String")
@@ -282,9 +273,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
                     val containedType = DslTypeName("java.time.ZonedDateTime")
                     this.dslMeta.registerType(
                         DslContainerTypeMeta(
-                            absoluteName,
-                            packageName,
-                            name,
+                            typeName,
                             documentation,
                             setOf(containedType),
                             containedType
@@ -304,35 +293,29 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
                             valueType = "String"
                         }
 
-                        if (valueType == "") {
-                            throw IllegalStateException("Don't know how to handle type split [$split] for $absoluteName")
-                        } else {
-                            sealedTypes[split.toLowerCase()] =
-                                DslTypeName(valueType)
-                        }
+                        check(valueType != "") { "Don't know how to handle type split [$split] for $typeName" }
+
+                        sealedTypes[split.toLowerCase()] =
+                            DslTypeName(valueType)
                     }
 
                     this.dslMeta.registerType(
                         DslSealedTypeMeta(
-                            absoluteName,
-                            packageName,
-                            name,
+                            typeName,
                             documentation,
                             emptySet(),
                             sealedTypes
                         )
                     )
                 }
-                else -> println("[SKIPPED] $absoluteName don't know how to handle format: ${dslClassInfo.format}")
+                else -> println("[SKIPPED] $typeName don't know how to handle format: ${dslClassInfo.format}")
             }
 
         }
         else {
             this.dslMeta.registerType(
                 DslInterfaceTypeMeta(
-                    absoluteName,
-                    packageName,
-                    name,
+                    typeName,
                     documentation,
                     emptySet()
                 )
@@ -340,16 +323,16 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         }
     }
 
-    private fun determineModelTypeDependencies(dslClassInfo: DslClassInfo, absoluteName: String): Set<String> {
+    private fun determineModelTypeDependencies(dslClassInfo: DslClassInfo, rawName: String): Set<String> {
         val typeDependencies = mutableSetOf<String>()
 
         dslClassInfo.properties.forEach { (name, property) ->
 
             var typeDependency: String? = null
             when {
-                isObjectProperty(property) -> typeDependency = this.kotlinTypeAbsolute(property, absoluteName, name)
-                isListProperty(property) -> typeDependency = this.listPropertyItemType(property, absoluteName, name)
-                isMapProperty(property) -> typeDependency = this.mapPropertyValueType(property, absoluteName, name)
+                isObjectProperty(property) -> typeDependency = this.kotlinTypeAbsolute(property, rawName, name)
+                isListProperty(property) -> typeDependency = this.listPropertyItemType(property, rawName, name)
+                isMapProperty(property) -> typeDependency = this.mapPropertyValueType(property, rawName, name)
             }
 
             if (typeDependency != null && DslTypeName(typeDependency).requiresImport()) {
@@ -360,7 +343,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         return typeDependencies
     }
 
-    private fun determineModelAttributes(dslClassInfo: DslClassInfo, absoluteName: String): Map<String, DslAttributeMeta> {
+    private fun determineModelAttributes(dslClassInfo: DslClassInfo, rawName: String): Map<String, DslAttributeMeta> {
         val attributes = mutableMapOf<String, DslAttributeMeta>()
 
         var propertyPosition = 0
@@ -373,7 +356,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
                 propertyPosition++
 
                 if (this.isListProperty(property)) {
-                    val itemType = this.listPropertyItemType(property, absoluteName, name)
+                    val itemType = this.listPropertyItemType(property, rawName, name)
 
                     if (itemType != null) {
                         attributes[name] = DslListAttributeMeta(
@@ -384,7 +367,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
                         )
                     }
                 } else if (this.isMapProperty(property)) {
-                    val itemType = this.mapPropertyValueType(property, absoluteName, name)
+                    val itemType = this.mapPropertyValueType(property, rawName, name)
 
                     if (itemType != null) {
                         attributes[name] = DslMapAttributeMeta(
@@ -399,7 +382,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
                         )
                     }
                 } else {
-                    val type = this.kotlinTypeAbsolute(property, absoluteName, name)
+                    val type = this.kotlinTypeAbsolute(property, rawName, name)
 
                     if (type != null) {
                         attributes[name] = DslObjectAttributeMeta(
@@ -430,11 +413,11 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         return property is ArrayProperty
     }
 
-    private fun listPropertyItemType(property: Property, owningTypeName: String, listPropertyName: String): String? {
+    private fun listPropertyItemType(property: Property, rawOwningTypeName: String, listPropertyName: String): String? {
         if (isListProperty(property)) {
             val listProperty = property as ArrayProperty
 
-            return this.kotlinTypeAbsolute(listProperty.items, owningTypeName, listPropertyName + "Item")
+            return this.kotlinTypeAbsolute(listProperty.items, rawOwningTypeName, listPropertyName + "Item")
         } else {
             throw IllegalArgumentException("property is not of correct type!" + property::javaClass)
         }
@@ -444,14 +427,14 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         return property is MapProperty
     }
 
-    private fun mapPropertyValueType(property: Property, owningTypeName: String, mapPropertyName: String): String? {
+    private fun mapPropertyValueType(property: Property, rawOwningTypeName: String, mapPropertyName: String): String? {
         if (isMapProperty(property)) {
             val mapProperty = property as MapProperty
 
             return if (this.isListProperty(mapProperty.additionalProperties)) {
-                this.listPropertyItemType(mapProperty.additionalProperties, owningTypeName, mapPropertyName + "Value")
+                this.listPropertyItemType(mapProperty.additionalProperties, rawOwningTypeName, mapPropertyName + "Value")
             } else {
-                this.kotlinTypeAbsolute(mapProperty.additionalProperties, owningTypeName, mapPropertyName + "Value")
+                this.kotlinTypeAbsolute(mapProperty.additionalProperties, rawOwningTypeName, mapPropertyName + "Value")
             }
 
         } else {
@@ -459,7 +442,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         }
     }
 
-    private fun kotlinTypeAbsolute(property: Property, owningTypeName: String, owningAttributeName: String): String? {
+    private fun kotlinTypeAbsolute(property: Property, rawOwningTypeName: String, owningAttributeName: String): String? {
         var propertyType : String? = null
 
         when (property) {
@@ -494,7 +477,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
                     Even if it is used in multiple places and even if the type exists in the standard platform types
                     they do not always reference them (not sure this is even possible).
                      */
-                    propertyType = owningTypeName + owningAttributeName.capitalize()
+                    propertyType = rawOwningTypeName + owningAttributeName.capitalize()
                     if (!this.dslMeta.typeMeta.containsKey(DslTypeName(propertyType).absoluteName)) {
                         if (!this.additionalPropertyDefinitions.containsKey(propertyType)) {
                             val additionalDslClassInfo = DslClassInfoObjectPropertyAdapter.toDslClassInfo(property)

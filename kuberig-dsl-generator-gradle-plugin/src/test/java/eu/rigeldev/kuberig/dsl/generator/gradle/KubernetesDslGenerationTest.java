@@ -13,7 +13,7 @@ public class KubernetesDslGenerationTest extends AbstractDslGenerationTest {
      * a 'x-kubernetes-xyz' attribute that is not a simple type.
      */
     @Test
-    public void testKubernetesVersion1dot10dot0() throws Exception {
+    public void testKubernetesVersion1dot16dot0() throws Exception {
         this.attemptDslGenerationAndProjectCompilation("1.16.0");
     }
 

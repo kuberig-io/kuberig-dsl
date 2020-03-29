@@ -57,7 +57,7 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
 
                     if (attributeMeta is DslListAttributeMeta) {
                         val listDslMeta = DslListDslMeta(
-                            DslTypeName(typeMeta.absoluteName),
+                            typeMeta.typeName,
                             attributeMeta,
                             plural
                         )
@@ -66,7 +66,7 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
                     }
                     else if (attributeMeta is DslMapAttributeMeta) {
                         val mapDslMeta = DslMapDslMeta(
-                            DslTypeName(typeMeta.absoluteName),
+                                typeMeta.typeName,
                             attributeMeta,
                             plural
                         )
@@ -86,12 +86,12 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
 
     private fun generateTypeClass(typeMeta: DslTypeMeta) {
         KotlinApiTypeGenerator(this.classWriterProducer, this.dslMeta)
-            .generateApiType(DslTypeName(typeMeta.absoluteName), typeMeta)
+            .generateApiType(typeMeta.typeName, typeMeta)
     }
 
     private fun generateTypeDslClass(typeMeta : DslTypeMeta) {
         KotlinApiTypeDslTypeGenerator(this.dslMeta, this.classWriterProducer, listOf("status"))
-            .generateApiTypeDslType(DslTypeName(typeMeta.absoluteName + "Dsl"), typeMeta)
+                .generateApiTypeDslType(typeMeta.typeName.dslTypeName(), typeMeta)
     }
 
     private fun generateKindClass(kindMeta : DslKindMeta, dslMeta : DslMeta) {

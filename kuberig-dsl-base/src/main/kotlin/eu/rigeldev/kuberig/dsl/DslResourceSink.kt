@@ -16,7 +16,9 @@
 
 package eu.rigeldev.kuberig.dsl
 
+import eu.rigeldev.kuberig.dsl.model.BasicResource
+
 interface DslResourceSink {
 
-    fun <T : KubernetesResource> add(resource : DslResource<T>)
+    fun <T : BasicResource> add(resource : DslResource<T>)
 }

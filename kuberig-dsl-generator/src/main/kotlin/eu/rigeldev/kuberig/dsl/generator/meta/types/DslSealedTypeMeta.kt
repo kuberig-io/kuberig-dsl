@@ -26,10 +26,8 @@ import eu.rigeldev.kuberig.dsl.generator.meta.DslTypeName
  * A custom Jackson Serializer is generated for these types. To preserve correct YAML/JSON output.
  */
 class DslSealedTypeMeta(
-    absoluteName: String,
-    packageName: String,
-    name: String,
+    typeName: DslTypeName,
     description: String,
     typeDependencies: Set<DslTypeName>,
     val sealedTypes: Map<String, DslTypeName>
-) : DslTypeMeta(absoluteName, packageName, name, description, typeDependencies)
+) : DslTypeMeta(typeName, description, typeDependencies)

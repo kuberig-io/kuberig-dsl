@@ -1,4 +1,6 @@
 package eu.rigeldev.kuberig.dsl
 
-interface KubernetesResourceDslType<T : KubernetesResource> : DslType<T> {
+import eu.rigeldev.kuberig.dsl.model.BasicResource
+
+interface KubernetesResourceDslType<T : BasicResource> : DslType<T> {
 }

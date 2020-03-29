@@ -39,7 +39,7 @@ class DslMeta(val platformSpecifics: DslPlatformSpecifics) {
     private val mapDslTypes = mutableMapOf<String, DslMapDslMeta>()
 
     fun registerType(typeMeta : DslTypeMeta) {
-        this.typeMeta[typeMeta.absoluteName] = typeMeta
+        this.typeMeta[typeMeta.typeName.absoluteName] = typeMeta
     }
 
     fun registerKind(kindMeta : DslKindMeta) {
@@ -52,7 +52,7 @@ class DslMeta(val platformSpecifics: DslPlatformSpecifics) {
             .anyMatch { packageNameStart -> absoluteName.startsWith(packageNameStart) }
     }
 
-    fun kindType(absoluteName: String): Kind? {
+    fun kindType(rawName: String): Kind? {
         var kind : Kind? = null
 
         val kindTypesIterator = this.writeableKindTypes.values.iterator()
@@ -65,7 +65,7 @@ class DslMeta(val platformSpecifics: DslPlatformSpecifics) {
             while (kind == null && typesIterator.hasNext()) {
                 val type = typesIterator.next()
 
-                if (type == absoluteName) {
+                if (type == rawName) {
                     kind = kindTypes.kind
                 }
             }
@@ -111,6 +111,12 @@ class DslMeta(val platformSpecifics: DslPlatformSpecifics) {
     }
 
     private fun collectionTypeMetaKey(typeMeta: DslTypeMeta, attributeMeta: DslAttributeMeta) : String {
-        return typeMeta.absoluteName + "_" + attributeMeta.name
+        return typeMeta.typeName.absoluteName + "_" + attributeMeta.name
+    }
+
+    fun kindUrl(typeName: DslTypeName): String {
+        val kind = this.kindType(typeName.rawName)
+        check(kind != null) { "${typeName.rawName} is not a kind!"}
+        return this.writeableKindUrls[kind]!!.url
     }
 }

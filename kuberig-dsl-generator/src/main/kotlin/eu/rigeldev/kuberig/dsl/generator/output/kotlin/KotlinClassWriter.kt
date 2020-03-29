@@ -85,6 +85,7 @@ class KotlinClassWriter(private val typeName : DslTypeName,
         var typeDocumentation = ""
 
         var parentType: DslTypeName? = null
+        var parentTypeGenerics: List<DslTypeName> = emptyList()
         var parentAttributeNames = listOf<String>()
 
         var interfaceType = ""
@@ -211,10 +212,12 @@ class KotlinClassWriter(private val typeName : DslTypeName,
         this.current.interfaceType = interfaceDeclaration
     }
 
-    fun typeParent(parentType: DslTypeName, parentAttributeNames: List<String>) {
+    fun typeParent(parentType: DslTypeName, parentAttributeNames: List<String>, parentTypeGenerics: List<DslTypeName> = emptyList()) {
         this.typeImport(parentType)
+        parentTypeGenerics.forEach(this::typeImport)
 
         this.current.parentType = parentType
+        this.current.parentTypeGenerics = parentTypeGenerics
         this.current.parentAttributeNames = parentAttributeNames
     }
 
@@ -498,7 +501,25 @@ class KotlinClassWriter(private val typeName : DslTypeName,
             }
 
             if (classDetail.parentType != null) {
-                this.writer.write(" : ${classDetail.parentType!!.typeShortName()}(")
+                this.writer.write(" : ${classDetail.parentType!!.typeShortName()}")
+
+                if (classDetail.parentTypeGenerics.isNotEmpty()) {
+                    this.writer.write("<")
+
+                    val parentTypeGenericsIterator = classDetail.parentTypeGenerics.iterator()
+                    while (parentTypeGenericsIterator.hasNext()) {
+                        val nextParentTypeGeneric = parentTypeGenericsIterator.next()
+
+                        this.writer.write(nextParentTypeGeneric.typeShortName())
+
+                        if (parentTypeGenericsIterator.hasNext()) {
+                            this.writer.write(", ")
+                        }
+                    }
+                    this.writer.write(">")
+                }
+                this.writer.write("(")
+
                 val parentAttributeNamesIterator = classDetail.parentAttributeNames.iterator()
                 while (parentAttributeNamesIterator.hasNext()) {
                     val nextParentAttributeName = parentAttributeNamesIterator.next()

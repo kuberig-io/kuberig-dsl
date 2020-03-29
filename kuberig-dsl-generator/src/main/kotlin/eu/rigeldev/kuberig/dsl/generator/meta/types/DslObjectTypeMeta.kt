@@ -23,11 +23,9 @@ import eu.rigeldev.kuberig.dsl.generator.meta.DslTypeName
  * API types with attributes.
  */
 class DslObjectTypeMeta(
-    absoluteName: String,
-    packageName: String,
-    name: String,
+    typeName: DslTypeName,
     description: String,
     typeDependencies: Set<DslTypeName>,
     val attributes: Map<String, DslAttributeMeta>,
     val kindType: Boolean
-) : DslTypeMeta(absoluteName, packageName, name, description, typeDependencies)
+) : DslTypeMeta(typeName, description, typeDependencies)
