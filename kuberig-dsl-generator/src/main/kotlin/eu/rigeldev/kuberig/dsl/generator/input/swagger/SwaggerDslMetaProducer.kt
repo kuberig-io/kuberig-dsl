@@ -196,8 +196,6 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
     }
 
     private fun processDefinition(rawName: String, definition: Model) {
-        println("[PROCESS] $rawName")
-
         if (definition is ModelImpl) {
             val kindType = this.dslMeta.kindType(rawName) != null
 
