@@ -22,7 +22,6 @@ import eu.rigeldev.kuberig.dsl.generator.meta.collections.DslMapDslMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.kinds.DslKindMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.kinds.Kind
 import eu.rigeldev.kuberig.dsl.generator.meta.kinds.KindTypes
-import eu.rigeldev.kuberig.dsl.generator.meta.kinds.KindUrl
 import eu.rigeldev.kuberig.dsl.generator.meta.types.DslTypeMeta
 
 class DslMeta(val platformSpecifics: DslPlatformSpecifics) {
@@ -32,8 +31,8 @@ class DslMeta(val platformSpecifics: DslPlatformSpecifics) {
 
     lateinit var resourceMetadataType : DslTypeName
 
-    val writeableKindUrls = mutableMapOf<Kind, KindUrl>()
-    val writeableKindTypes = mutableMapOf<Kind, KindTypes>()
+    lateinit var kindApiActions : Map<Kind, KindActions>
+    val kindTypes = mutableMapOf<Kind, KindTypes>()
 
     private val listDslTypes = mutableMapOf<String, DslListDslMeta>()
     private val mapDslTypes = mutableMapOf<String, DslMapDslMeta>()
@@ -55,7 +54,7 @@ class DslMeta(val platformSpecifics: DslPlatformSpecifics) {
     fun kindType(rawName: String): Kind? {
         var kind : Kind? = null
 
-        val kindTypesIterator = this.writeableKindTypes.values.iterator()
+        val kindTypesIterator = this.kindTypes.values.iterator()
 
         while (kind == null && kindTypesIterator.hasNext()) {
             val kindTypes = kindTypesIterator.next()
@@ -112,11 +111,5 @@ class DslMeta(val platformSpecifics: DslPlatformSpecifics) {
 
     private fun collectionTypeMetaKey(typeMeta: DslTypeMeta, attributeMeta: DslAttributeMeta) : String {
         return typeMeta.typeName.absoluteName + "_" + attributeMeta.name
-    }
-
-    fun kindUrl(typeName: DslTypeName): String {
-        val kind = this.kindType(typeName.rawName)
-        check(kind != null) { "${typeName.rawName} is not a kind!"}
-        return this.writeableKindUrls[kind]!!.url
     }
 }

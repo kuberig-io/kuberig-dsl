@@ -17,9 +17,7 @@
 package eu.rigeldev.kuberig.dsl.generator.input.swagger
 
 import eu.rigeldev.kuberig.dsl.generator.input.DslMetaProducer
-import eu.rigeldev.kuberig.dsl.generator.meta.DslMeta
-import eu.rigeldev.kuberig.dsl.generator.meta.DslPlatformSpecifics
-import eu.rigeldev.kuberig.dsl.generator.meta.DslTypeName
+import eu.rigeldev.kuberig.dsl.generator.meta.*
 import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslAttributeMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslListAttributeMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslMapAttributeMeta
@@ -27,15 +25,15 @@ import eu.rigeldev.kuberig.dsl.generator.meta.attributes.DslObjectAttributeMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.kinds.DslKindMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.kinds.Kind
 import eu.rigeldev.kuberig.dsl.generator.meta.kinds.KindTypes
-import eu.rigeldev.kuberig.dsl.generator.meta.kinds.KindUrl
 import eu.rigeldev.kuberig.dsl.generator.meta.types.DslContainerTypeMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.types.DslInterfaceTypeMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.types.DslObjectTypeMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.types.DslSealedTypeMeta
-import io.swagger.models.Model
-import io.swagger.models.ModelImpl
-import io.swagger.models.RefModel
-import io.swagger.models.Swagger
+import io.swagger.models.*
+import io.swagger.models.parameters.BodyParameter
+import io.swagger.models.parameters.Parameter
+import io.swagger.models.parameters.PathParameter
+import io.swagger.models.parameters.QueryParameter
 import io.swagger.models.properties.*
 import io.swagger.parser.SwaggerParser
 import java.io.File
@@ -66,10 +64,11 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
             )
         }
 
-        this.findWritableKindUrls()
-        this.findWritableKindTypes()
+        this.findKindApiInfo()
 
-        check(this.dslMeta.writeableKindTypes.isNotEmpty()) { "No writeable kinds found, kubernetes metadata missing" }
+        this.findKindTypes()
+
+        check(this.dslMeta.kindTypes.isNotEmpty()) { "No writeable kinds found, kubernetes metadata missing" }
 
         this.findFullMetadataType()
         this.processKindTypes()
@@ -79,28 +78,150 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         return dslMeta
     }
 
-    private fun findWritableKindUrls() {
+    private fun findKindApiInfo() {
+
+        val kindApiActions = mutableMapOf<Kind, KindActions>()
+
         this.spec.paths.forEach { (url, path) ->
-
-            if (path.post != null) {
-                if (path.post.vendorExtensions.containsKey("x-kubernetes-group-version-kind")) {
-                    val rawMap = path.post.vendorExtensions["x-kubernetes-group-version-kind"] as Map<*, *>
-
-                    val kind = kubernetesGroupVersionKindToKind(rawMap)
-
-                    val kindUrl = KindUrl(url, kind)
-
-                    this.dslMeta.writeableKindUrls[kind] = kindUrl
+            path.operationMap.forEach { httpMethod, operation ->
+                val operationKind = this.operationKind(operation)
+                if (operationKind != null) {
+                    val operationAction = this.operationAction(url, httpMethod.name, operation)
+                    if (operationAction != null) {
+                        val kindActions = kindApiActions.getOrDefault(operationKind, KindActions(operationKind, emptyList()))
+                        val actions = mutableListOf<ResourceApiAction>()
+                        actions.addAll(kindActions.actions)
+                        actions.add(operationAction)
+                        kindApiActions[operationKind] = KindActions(operationKind, actions)
+                    }
                 }
             }
         }
 
-        println("Found #${this.dslMeta.writeableKindUrls.size} writeable kinds...")
+        this.dslMeta.kindApiActions = kindApiActions.toMap()
+    }
+
+    private fun operationAction(url: String, httpMethod: String, operation: Operation): ResourceApiAction? {
+        val operationKind = this.operationKind(operation)
+        return if (operationKind != null) {
+            val requestBodyType = operationRequestBodyType(operation)
+            val responseBodyType = operationOkResponseBodyType(operation)
+
+            return ResourceApiAction(
+                    url,
+                    httpMethod,
+                    operation.vendorExtensions["x-kubernetes-action"] as String,
+                    operation.description,
+                    requestBodyType,
+                    responseBodyType,
+                    queryParameterMap(operation.parameters),
+                    pathParameterMap(operation.parameters)
+            )
+        } else {
+            null
+        }
+    }
+
+    private fun operationRequestBodyType(operation: Operation): DslTypeName? {
+        val bodyParameters = operation.parameters.filter { it.`in` == "body" }
+        return if (bodyParameters.size == 1) {
+            val bodyParameter = bodyParameters[0]
+            if (bodyParameter is BodyParameter) {
+                val bodySchema = bodyParameter.schema
+                if (bodySchema is RefModel) {
+                    DslTypeName(bodySchema.simpleRef)
+                } else {
+                    null
+                }
+            } else {
+                null
+            }
+        } else {
+            null
+        }
+    }
+
+    private fun operationOkResponseBodyType(operation: Operation): DslTypeName? {
+        val okResponse = operation.responses["200"]
+        return if (okResponse != null ) {
+            val okResponseSchema = okResponse.responseSchema
+            if (okResponseSchema is RefModel) {
+                DslTypeName(okResponseSchema.simpleRef)
+            } else {
+                null
+            }
+        } else {
+            null
+        }
+    }
+
+    private fun pathParameterMap(parameters: List<Parameter>?): Map<String, ResourceApiActionParameter> {
+        val parameterMap = mutableMapOf<String, ResourceApiActionParameter>()
+
+        if (parameters != null) {
+            for (parameter in parameters) {
+                if (parameter is PathParameter) {
+                    val actionParameter = basicParameter(parameter, parameter.type, parameter.uniqueItems)
+
+                    parameterMap[actionParameter.name] = actionParameter
+                }
+            }
+        }
+
+        return parameterMap.toMap()
+    }
+
+    private fun queryParameterMap(parameters: List<Parameter>?): Map<String, ResourceApiActionParameter> {
+        val parameterMap = mutableMapOf<String, ResourceApiActionParameter>()
+
+        if (parameters != null) {
+            for (parameter in parameters) {
+                if (parameter is QueryParameter) {
+
+                    val actionParameter = basicParameter(parameter, parameter.type, parameter.uniqueItems)
+
+                    parameterMap[actionParameter.name] = actionParameter
+                }
+            }
+        }
+
+        return parameterMap.toMap()
+    }
+
+    private fun basicParameter(parameter: Parameter, type: String, uniqueItems: Boolean) : ResourceApiActionParameter {
+        val typeName = if (type == "string") {
+            DslTypeName("String")
+        } else if (type == "boolean") {
+            DslTypeName("Boolean")
+        } else if (type == "integer") {
+            DslTypeName("Int")
+        } else {
+            throw IllegalStateException("$type not supported for query parameters")
+        }
+
+        return ResourceApiActionParameter(
+                parameter.name,
+                parameter.description,
+                typeName,
+                uniqueItems,
+                parameter.required
+        )
+    }
+
+    private fun operationKind(operation: Operation): Kind? {
+        return if (operation.vendorExtensions.containsKey("x-kubernetes-group-version-kind")) {
+            val rawMap = operation.vendorExtensions["x-kubernetes-group-version-kind"] as Map<*, *>
+
+            kubernetesGroupVersionKindToKind(rawMap)
+        } else {
+            null
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun findWritableKindTypes() {
-        this.dslMeta.writeableKindUrls.keys.forEach { kind ->
+    private fun findKindTypes() {
+        // TODO base on definitions only we now miss the read only kinds, so they do not get the proper parent types.
+        this.dslMeta.kindApiActions.keys.forEach { kind ->
             val types = mutableListOf<String>()
 
             this.spec.definitions.forEach { (rawName, definition) ->
@@ -119,7 +240,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
             }
 
             if (types.isNotEmpty()) {
-                this.dslMeta.writeableKindTypes[kind] = KindTypes(kind, types)
+                this.dslMeta.kindTypes[kind] = KindTypes(kind, types)
             }
         }
     }
@@ -141,7 +262,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
     private fun findFullMetadataType() {
         var fullMetadataTypename : DslTypeName? = null
 
-        val kindTypeIterator = this.dslMeta.writeableKindTypes.values.iterator()
+        val kindTypeIterator = this.dslMeta.kindTypes.values.iterator()
 
         while (fullMetadataTypename == null && kindTypeIterator.hasNext()) {
             val kindType = kindTypeIterator.next()
@@ -173,7 +294,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
     private fun processKindTypes() {
 
         // create type-meta for kind classes
-        this.dslMeta.writeableKindTypes.values.forEach { kindTypes ->
+        this.dslMeta.kindTypes.values.forEach { kindTypes ->
 
             kindTypes.types.forEach { rawName ->
 
