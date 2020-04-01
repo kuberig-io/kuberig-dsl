@@ -74,9 +74,14 @@ class KotlinApiTypeGenerator(
         kotlinClassWriter.use {classWriter ->
             classWriter.typeDocumentation(typeMeta.description)
 
-            typeMeta.attributes.minus("status").forEach { (attributeName, attributeMeta) ->
+            typeMeta.attributes.forEach { (attributeName, attributeMeta) ->
 
                 val nullable = attributeMeta.isOptional()
+                val defaultValue = if (nullable) {
+                    "null"
+                } else {
+                    ""
+                }
 
                 when (attributeMeta) {
                     is DslObjectAttributeMeta -> {
@@ -84,7 +89,8 @@ class KotlinApiTypeGenerator(
                             listOf("val"),
                             attributeName,
                             attributeMeta.absoluteAttributeDeclarationType(),
-                            nullable = nullable
+                            nullable = nullable,
+                            defaultValue = defaultValue
                         )
                     }
                     is DslListAttributeMeta -> {
@@ -95,6 +101,7 @@ class KotlinApiTypeGenerator(
                             attributeName,
                             attributeMeta.absoluteAttributeDeclarationType(),
                             nullable = nullable,
+                            defaultValue = defaultValue,
                             declarationTypeOverride = attributeMeta.attributeDeclarationType()
                         )
                     }
@@ -106,6 +113,7 @@ class KotlinApiTypeGenerator(
                             attributeName,
                             attributeMeta.absoluteAttributeDeclarationType(),
                             nullable = nullable,
+                            defaultValue = defaultValue,
                             declarationTypeOverride = attributeMeta.attributeDeclarationType()
                         )
                     }
