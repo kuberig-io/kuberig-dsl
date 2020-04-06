@@ -112,8 +112,8 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
                     httpMethod,
                     operation.vendorExtensions["x-kubernetes-action"] as String,
                     operation.description,
-                    requestBodyType,
-                    responseBodyType,
+                    requestBodyType?.absoluteName,
+                    responseBodyType?.absoluteName,
                     queryParameterMap(operation.parameters),
                     pathParameterMap(operation.parameters)
             )
@@ -202,7 +202,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
         return ResourceApiActionParameter(
                 parameter.name,
                 parameter.description,
-                typeName,
+                typeName.absoluteName,
                 uniqueItems,
                 parameter.required
         )

@@ -46,6 +46,7 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
         this.generateDslRoots(dslMeta)
         this.generateListDslTypes()
         this.generateMapDslTypes()
+        this.generateActionObjects()
     }
 
     private fun prepareCollectionTypeMeta() {
@@ -129,5 +130,11 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
         val mapDslTypeGenerator = KotlinMapDslTypeGenerator(this.classWriterProducer)
 
         this.dslMeta.getMapDslTypes().forEach(mapDslTypeGenerator::generateMapDslType)
+    }
+
+    private fun generateActionObjects() {
+        val actionObjectsGenerator = KotlinActionObjectsGenerator(this.dslMeta, this.classWriterProducer)
+
+        actionObjectsGenerator.generateActionObjects()
     }
 }
