@@ -2,6 +2,7 @@ package eu.rigeldev.kuberig.dsl.generator.output.kotlin
 
 import eu.rigeldev.kuberig.dsl.generator.meta.DslMeta
 import eu.rigeldev.kuberig.dsl.generator.meta.DslTypeName
+import eu.rigeldev.kuberig.dsl.generator.meta.ResourceApiActionParameter
 import eu.rigeldev.kuberig.dsl.generator.meta.kinds.Kind
 
 /**
@@ -50,11 +51,41 @@ class KotlinActionObjectsGenerator(
                         defaultValue = "KindId(\"${it.kind.apiVersion()}\",\"${it.kind.kind}\")"
                 )
 
+                classWriter.typeImport("eu.rigeldev.kuberig.dsl.actions.KindAction")
+                classWriter.typeImport("eu.rigeldev.kuberig.dsl.actions.KindActionParameter")
+
+                var actionsListDefaultValue = "\t\tlistOf(\n"
+
+                val actionsIterator = it.actions.iterator()
+                while (actionsIterator.hasNext()) {
+                    val action = actionsIterator.next()
+
+
+
+
+                    actionsListDefaultValue += "\t\t\tKindAction("
+                    actionsListDefaultValue += "${stringCodeValue(action.urlPattern)},"
+                    actionsListDefaultValue += "${stringCodeValue(action.httpMethod)},"
+                    actionsListDefaultValue += "${stringCodeValue(action.kubernetesAction)},"
+                    actionsListDefaultValue += "${stringCodeValue(action.description)},"
+                    actionsListDefaultValue += "${stringCodeValue(action.requestBodyType)},"
+                    actionsListDefaultValue += "${stringCodeValue(action.responseBodyType)},\n"
+                    actionsListDefaultValue += "\t\t\t\t${toCode(action.queryParameters)},\n"
+                    actionsListDefaultValue += "\t\t\t\t${toCode(action.pathParameters)}"
+                    actionsListDefaultValue += ")"
+
+                    if (actionsIterator.hasNext()) {
+                        actionsListDefaultValue += ",\n"
+                    }
+                }
+
+                actionsListDefaultValue += "\n\t)"
+
                 classWriter.typeAttribute(
                         modifiers = listOf("val"),
                         attributeName = "actions",
                         declarationType = DslTypeName("eu.rigeldev.kuberig.dsl.actions.KindActions"),
-                        defaultValue = "KindActions(id, listOf())"
+                        defaultValue = "KindActions(id, ${actionsListDefaultValue})"
                 )
 
                 classWriter.typeMethod(
@@ -70,6 +101,44 @@ class KotlinActionObjectsGenerator(
 
     }
 
+    private fun toCode(parameterMap: Map<String, ResourceApiActionParameter>): String {
+        var code = "mapOf(\n"
+
+        val entries = parameterMap.entries.iterator()
+
+        while (entries.hasNext()) {
+            val currentEntry = entries.next()
+            val name = currentEntry.key
+            val parameter = currentEntry.value
+
+            code += "\t\t\t\t\tPair(${stringCodeValue(name)},${toCode(parameter)})"
+
+            if (entries.hasNext()) {
+                code += ",\n"
+            }
+        }
+
+        code += "\n\t\t\t\t)"
+
+        return code
+    }
+
+    private fun toCode(parameter: ResourceApiActionParameter): String {
+        return "KindActionParameter(${stringCodeValue(parameter.name)},${stringCodeValue(parameter.description)},${stringCodeValue(parameter.type)},${parameter.uniqueItems},${parameter.required})"
+    }
+
+    private fun stringCodeValue(stringValue: String?): String {
+        return if (stringValue == null) {
+            "null"
+        } else {
+            "\"${stringValue.replace("\"","\\\"").replace("\t","").replace("\n","")}\""
+        }
+    }
+
+    /**
+     * The KindActionRegister will in the future need to be part of the kuberig-dsl-base module and dynamically load
+     * available KindAction details at runtime in order to support cases where CRD only kinds are available through dependencies.
+     */
     private fun generateKindActionRegister() {
         val kotlinClassWriter = KotlinClassWriter(
                 DslTypeName("kinds.KindActionRegister"),
