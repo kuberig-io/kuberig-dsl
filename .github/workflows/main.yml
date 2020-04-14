@@ -40,7 +40,7 @@ jobs:
         # A directory to store and save the cache
         path: .gradle/caches
         # An explicit key for restoring and saving the cache
-        key: gradle-wrapper-cache
+        key: gradle-download-cache
 
     - name: Prep
       run: |
