@@ -7,8 +7,6 @@ package eu.rigeldev.kuberig.dsl.model
  *
  * Based on the following documentation.
  * https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#metadata.
- *
- * Additional we add the URL the resource is available on.
  */
 open class BasicResource(
         /**
