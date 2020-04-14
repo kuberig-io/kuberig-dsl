@@ -54,7 +54,6 @@ jobs:
     # Runs a single command using the runners shell
     - name: build
       run: ./gradlew build -x check
-      if: github.runner.
 
     # Runs a set of commands using the runners shell
     - name: check
