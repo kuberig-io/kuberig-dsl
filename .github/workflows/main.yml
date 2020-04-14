@@ -26,6 +26,29 @@ jobs:
         # The Java version to make available on the path. Takes a whole or semver Java version, or 1.x syntax (e.g. 1.8 => Java 8.x)
         java-version: 12
 
+    - name: Gradle Wrapper Cache
+      uses: actions/cache@v1.1.2
+      with:
+        # A directory to store and save the cache
+        path: .gradle/wrapper
+        # An explicit key for restoring and saving the cache
+        key: gradle-wrapper-cache
+
+    - name: Gradle Download Cache
+      uses: actions/cache@v1.1.2
+      with:
+        # A directory to store and save the cache
+        path: .gradle/caches
+        # An explicit key for restoring and saving the cache
+        key: gradle-wrapper-cache
+
+    - name: Prep
+      run: |
+        export GRADLE_USER_HOME=`pwd`/.gradle
+        rm -f  .gradle/caches/modules-2/modules-2.lock
+        rm -fr .gradle/caches/*/plugin-resolution/
+        export GRADLE_OPTS="-Dorg.gradle.daemon=false"
+
     # Runs a single command using the runners shell
     - name: build
       run: ./gradlew build -x check
