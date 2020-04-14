@@ -62,6 +62,17 @@ subprojects {
 
     configure<PublishingExtension> {
 
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/teyckmans/kuberig-dsl")
+                credentials {
+                    username = System.getenv("GITHUB_ACTOR")
+                    password = System.getenv("GITHUB_TOKEN")
+                }
+            }
+        }
+
         publications {
             register(subProject.name, MavenPublication::class) {
                 from(components["java"])

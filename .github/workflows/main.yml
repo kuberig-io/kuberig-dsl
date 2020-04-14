@@ -58,3 +58,9 @@ jobs:
     # Runs a set of commands using the runners shell
     - name: check
       run: ./gradlew check
+
+    - name: publish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: ./gradlew publish
+
