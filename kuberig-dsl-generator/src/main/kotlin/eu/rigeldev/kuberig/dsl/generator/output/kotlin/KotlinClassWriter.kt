@@ -35,7 +35,8 @@ import java.io.StringWriter
  */
 class KotlinClassWriter(private val typeName : DslTypeName,
                         classWriterProducer : KotlinClassWriterProducer,
-                        private val classType : String = "open class") : Closeable {
+                        private val classType : String = "open class",
+                        private val mode : KotlinClassWriterMode = KotlinClassWriterMode.TYPE) : Closeable {
 
     /**
      * Hard Keywords from https://kotlinlang.org/docs/reference/keyword-reference.html
@@ -77,10 +78,11 @@ class KotlinClassWriter(private val typeName : DslTypeName,
 
     private val classDetails = mutableListOf<ClassDetail>()
     private val fileMethods = mutableListOf<String>()
+    private val typeImports = mutableSetOf<DslTypeName>()
+
 
     internal class ClassDetail(val typeName : DslTypeName,
                                val classType : String = "open class") {
-        val typeImports = mutableSetOf<DslTypeName>()
         val typeAnnotations = mutableSetOf<String>()
         var typeDocumentation = ""
 
@@ -98,7 +100,9 @@ class KotlinClassWriter(private val typeName : DslTypeName,
     private lateinit var current : ClassDetail
 
     init {
-        this.push(this.typeName, this.classType)
+        if (this.mode == KotlinClassWriterMode.TYPE) {
+            this.push(this.typeName, this.classType)
+        }
     }
 
     fun push(typeName : DslTypeName, classType : String = "open class") {
@@ -111,7 +115,7 @@ class KotlinClassWriter(private val typeName : DslTypeName,
     }
 
     fun typeImport(importType : DslTypeName) {
-        this.classDetails.first().typeImports.add(importType)
+        this.typeImports.add(importType)
     }
 
     fun typeAnnotation(annotationType : String, annotationValue : String = "") {
@@ -443,29 +447,20 @@ class KotlinClassWriter(private val typeName : DslTypeName,
     }
 
     override fun close() {
-        val classDetailsIterator = this.classDetails.iterator()
+        val packageName = typeName.packageName()
+        if (packageName != "") {
+            this.writeLine("package $packageName")
 
-        var first = true
-        while (classDetailsIterator.hasNext()) {
-            val classDetail = classDetailsIterator.next()
+            this.writer.newLine()
+        }
 
-            if (first) {
-                val packageName = classDetail.typeName.packageName()
-                if (packageName != "") {
-                    this.writeLine("package $packageName")
-
-                    this.writer.newLine()
-                }
-
-                first = false
+        typeImports.forEach {
+            if (it.requiresImport()) {
+                this.writeLine("import ${it.absoluteName}")
             }
+        }
 
-            classDetail.typeImports.forEach {
-                if (it.requiresImport()) {
-                    this.writeLine("import ${it.absoluteName}")
-                }
-            }
-
+        for (classDetail in classDetails) {
             this.writer.newLine()
 
             if (classDetail.typeDocumentation != "") {
@@ -615,4 +610,9 @@ class KotlinClassWriter(private val typeName : DslTypeName,
         buffered.close()
         return docWriter.toString()
     }
+}
+
+enum class KotlinClassWriterMode {
+    TYPE,
+    FILE
 }

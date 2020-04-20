@@ -19,7 +19,8 @@ package eu.rigeldev.kuberig.dsl.generator.output.kotlin
 import eu.rigeldev.kuberig.dsl.generator.meta.DslTypeName
 import eu.rigeldev.kuberig.dsl.generator.meta.collections.DslListDslMeta
 
-class KotlinListDslTypeGenerator(private val classWriterProducer : KotlinClassWriterProducer) {
+class KotlinListDslTypeGenerator(private val classWriterProducer : KotlinClassWriterProducer,
+                                 private val factoryMethodsGenerator: KotlinFactoryMethodsGenerator) {
 
     fun generateListDslType(listDslMeta: DslListDslMeta) {
         KotlinClassWriter(listDslMeta.declarationType(), this.classWriterProducer).use { classWriter ->
@@ -96,17 +97,9 @@ class KotlinListDslTypeGenerator(private val classWriterProducer : KotlinClassWr
                 )
             }
 
-            classWriter.fileMethod(
-                methodName = listDslMeta.declarationType().methodName(),
-                methodParameters = listOf(
-                    Pair("init", "${listDslMeta.declarationType().typeShortName()}.() -> Unit")
-                ),
-                methodReturnType = listDslMeta.declarationType().typeShortName(),
-                methodCode = listOf(
-                    "val gen = ${listDslMeta.declarationType().typeShortName()}()",
-                    "gen.init()",
-                    "return gen"
-                )
+            factoryMethodsGenerator.addFactoryMethod(
+                listDslMeta.declarationType().methodName(),
+                listDslMeta.declarationType()
             )
         }
     }

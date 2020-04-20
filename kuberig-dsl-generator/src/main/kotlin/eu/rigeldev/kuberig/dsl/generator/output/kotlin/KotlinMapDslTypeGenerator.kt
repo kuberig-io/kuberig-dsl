@@ -19,7 +19,8 @@ package eu.rigeldev.kuberig.dsl.generator.output.kotlin
 import eu.rigeldev.kuberig.dsl.generator.meta.DslTypeName
 import eu.rigeldev.kuberig.dsl.generator.meta.collections.DslMapDslMeta
 
-class KotlinMapDslTypeGenerator(private val classWriterProducer : KotlinClassWriterProducer) {
+class KotlinMapDslTypeGenerator(private val classWriterProducer : KotlinClassWriterProducer,
+                                private val factoryMethodsGenerator: KotlinFactoryMethodsGenerator) {
 
     fun generateMapDslType(mapDslMeta: DslMapDslMeta) {
         KotlinClassWriter(mapDslMeta.declarationType(), this.classWriterProducer).use { classWriter ->
@@ -112,17 +113,9 @@ class KotlinMapDslTypeGenerator(private val classWriterProducer : KotlinClassWri
                 )
             }
 
-            classWriter.fileMethod(
-                methodName = mapDslMeta.declarationType().methodName(),
-                methodParameters = listOf(
-                    Pair("init", "${mapDslMeta.declarationType().typeShortName()}.() -> Unit")
-                ),
-                methodReturnType = mapDslMeta.declarationType().typeShortName(),
-                methodCode = listOf(
-                    "val gen = ${mapDslMeta.declarationType().typeShortName()}()",
-                    "gen.init()",
-                    "return gen"
-                )
+            factoryMethodsGenerator.addFactoryMethod(
+                mapDslMeta.declarationType().methodName(),
+                mapDslMeta.declarationType()
             )
         }
     }

@@ -34,10 +34,13 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
 
     private lateinit var dslMeta : DslMeta
 
+    private lateinit var factoryMethodsGenerator: KotlinFactoryMethodsGenerator
+
     override fun consume(dslMeta: DslMeta) {
         this.dslMeta = dslMeta
 
         this.classWriterProducer = KotlinClassWriterProducer(sourceOutputDirectory)
+        this.factoryMethodsGenerator = KotlinFactoryMethodsGenerator(this.classWriterProducer)
 
         this.prepareCollectionTypeMeta()
         dslMeta.typeMeta.values.forEach(this::generateTypeClass)
@@ -46,6 +49,8 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
         this.generateDslRoots(dslMeta)
         this.generateListDslTypes()
         this.generateMapDslTypes()
+
+        this.factoryMethodsGenerator.writeAll()
     }
 
     private fun prepareCollectionTypeMeta() {
@@ -90,7 +95,7 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
     }
 
     private fun generateTypeDslClass(typeMeta : DslTypeMeta) {
-        KotlinApiTypeDslTypeGenerator(this.dslMeta, this.classWriterProducer, listOf("status"))
+        KotlinApiTypeDslTypeGenerator(this.dslMeta, this.classWriterProducer, this.factoryMethodsGenerator, listOf("status"))
                 .generateApiTypeDslType(typeMeta.typeName.dslTypeName(), typeMeta)
     }
 
@@ -98,6 +103,7 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
         val kindDslTypeGenerator = KotlinApiTypeDslTypeGenerator(
             dslMeta,
             this.classWriterProducer,
+            this.factoryMethodsGenerator,
             listOf("kind", "apiVersion", "status"),
             kindMeta
         )
@@ -120,13 +126,13 @@ class KotlinDslMetaConsumer(private val sourceOutputDirectory : File) : DslMetaC
     }
 
     private fun generateListDslTypes() {
-        val listDslTypeGenerator = KotlinListDslTypeGenerator(this.classWriterProducer)
+        val listDslTypeGenerator = KotlinListDslTypeGenerator(this.classWriterProducer, this.factoryMethodsGenerator)
 
         this.dslMeta.getListDslTypes().forEach(listDslTypeGenerator::generateListDslType)
     }
 
     private fun generateMapDslTypes() {
-        val mapDslTypeGenerator = KotlinMapDslTypeGenerator(this.classWriterProducer)
+        val mapDslTypeGenerator = KotlinMapDslTypeGenerator(this.classWriterProducer, this.factoryMethodsGenerator)
 
         this.dslMeta.getMapDslTypes().forEach(mapDslTypeGenerator::generateMapDslType)
     }

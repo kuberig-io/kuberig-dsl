@@ -27,6 +27,7 @@ import java.io.StringWriter
 
 class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                                     private val classWriterProducer : KotlinClassWriterProducer,
+                                    private val factoryMethodsGenerator: KotlinFactoryMethodsGenerator,
                                     private val attributeIgnores : List<String> = emptyList(),
                                     private val kindMeta : DslKindMeta? = null) {
 
@@ -67,7 +68,7 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                 )
             )
 
-            this.addGeneratorFunction(typeName, typeMeta, classWriter)
+            this.addGeneratorFunction(typeName, typeMeta)
         }
     }
 
@@ -116,7 +117,7 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                 )
             )
 
-            this.addGeneratorFunction(typeName, typeMeta, classWriter)
+            this.addGeneratorFunction(typeName, typeMeta)
         }
     }
 
@@ -177,7 +178,7 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                 )
             )
 
-            this.addGeneratorFunction(typeName, typeMeta, classWriter)
+            this.addGeneratorFunction(typeName, typeMeta)
         }
     }
 
@@ -521,24 +522,16 @@ class KotlinApiTypeDslTypeGenerator(private val dslMeta : DslMeta,
                 methodCode = toValueMethodCode
             )
 
-            this.addGeneratorFunction(typeName, typeMeta, classWriter)
+            this.addGeneratorFunction(typeName, typeMeta)
         }
     }
 
-    private fun addGeneratorFunction(dslTypeName: DslTypeName, typeMeta: DslTypeMeta, classWriter: KotlinClassWriter) {
+    private fun addGeneratorFunction(dslTypeName: DslTypeName, typeMeta: DslTypeMeta) {
         val declarationType = DslTypeName(typeMeta.typeName.absoluteName)
 
-        classWriter.fileMethod(
-            methodName = declarationType.methodName(),
-            methodParameters = listOf(
-                Pair("init", "${dslTypeName.typeShortName()}.() -> Unit")
-            ),
-            methodReturnType = dslTypeName.typeShortName(),
-            methodCode = listOf(
-                "val gen = ${dslTypeName.typeShortName()}()",
-                "gen.init()",
-                "return gen"
-            )
+        this.factoryMethodsGenerator.addFactoryMethod(
+            declarationType.methodName(),
+            dslTypeName
         )
     }
 
