@@ -21,7 +21,6 @@ import org.gradle.api.Project
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.util.*
 
 open class KubeRigDslGeneratorPlugin : Plugin<Project> {
 
@@ -32,9 +31,9 @@ open class KubeRigDslGeneratorPlugin : Plugin<Project> {
 
         val extension = project.extensions.create("kuberigDsl", KubeRigDslGeneratorExtension::class.java, project)
 
-        val props = this.loadProps()
-        val kubeRigVersion = props["kuberig.version"]
-        val jacksonVersion = props["jackson.version"]
+        val props = KubeRigDslProperties.load()
+        val kubeRigDslVersion = props.kubeRigDslVersion
+        val jacksonVersion = props.jacksonVersion
 
         project.dependencies.add(
             "implementation",
@@ -58,7 +57,7 @@ open class KubeRigDslGeneratorPlugin : Plugin<Project> {
         )
         project.dependencies.add(
             "implementation",
-            "eu.rigeldev.kuberig:kuberig-dsl-base:$kubeRigVersion"
+            "eu.rigeldev.kuberig:kuberig-dsl-base:$kubeRigDslVersion"
         )
 
         project.tasks.register("generateDslSource", KubeRigDslGeneratorTask::class.java) { generateDslSourceTask ->
@@ -87,9 +86,4 @@ open class KubeRigDslGeneratorPlugin : Plugin<Project> {
         }
     }
 
-    private fun loadProps() : Properties {
-        val props = Properties()
-        props.load(this.javaClass.getResourceAsStream("/kuberig.properties"))
-        return props
-    }
 }
