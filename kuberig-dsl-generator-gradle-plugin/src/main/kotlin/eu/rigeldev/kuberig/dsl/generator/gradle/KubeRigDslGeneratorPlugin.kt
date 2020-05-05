@@ -32,8 +32,8 @@ open class KubeRigDslGeneratorPlugin : Plugin<Project> {
         val extension = project.extensions.create("kuberigDsl", KubeRigDslGeneratorExtension::class.java, project)
 
         val props = KubeRigDslProperties.load()
-        val kubeRigDslVersion = props.kubeRigDslVersion
-        val jacksonVersion = props.jacksonVersion
+        val kubeRigDslVersion = props.kubeRigDslVersion.versionText
+        val jacksonVersion = props.jacksonVersion.versionText
 
         project.dependencies.add(
             "implementation",

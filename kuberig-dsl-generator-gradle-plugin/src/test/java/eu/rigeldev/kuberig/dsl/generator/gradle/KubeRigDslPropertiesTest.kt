@@ -13,10 +13,7 @@ internal class KubeRigDslPropertiesTest {
      */
     @Test
     fun verifyPropertyLoading() {
-        val props = KubeRigDslProperties.load()
-
-        assertFalse(props.kubeRigDslVersion.isEmpty())
-        assertFalse(props.jacksonVersion.isEmpty())
+        KubeRigDslProperties.load()
     }
 
     @Test

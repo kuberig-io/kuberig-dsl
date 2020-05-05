@@ -5,7 +5,7 @@ import java.util.*
 /**
  * KubeRig DSL plugin properties.
  */
-class KubeRigDslProperties(val kubeRigDslVersion: String, val jacksonVersion: String) {
+class KubeRigDslProperties(val kubeRigDslVersion: SemVersion, val jacksonVersion: SemVersion) {
 
     companion object {
         /**
@@ -23,14 +23,12 @@ class KubeRigDslProperties(val kubeRigDslVersion: String, val jacksonVersion: St
 
         fun load(kubeRigDslVersion: String, jacksonVersion: String): KubeRigDslProperties {
 
-            check(kubeRigDslVersion != "'$'{kuberigDslVersion}") { "kuberig.dsl.version ${kubeRigDslVersion} in kuberig-dsl.properties was not properly replaced during build."}
-            check(kubeRigDslVersion != "0.0.0") { "kuberig.dsl.version ${kubeRigDslVersion} in kuberig-dsl.properties was not properly replaced during build."}
-            check(kubeRigDslVersion.split('.').size == 3) { "kuberig.dsl.version ${kubeRigDslVersion} in kuberig-dsl.properties is not a valid sem-version."}
-            check(jacksonVersion.split('.').size == 3) { "jacksonVersion ${jacksonVersion} in kuberig-dsl.properties is not a valid sem-version."}
+            check(kubeRigDslVersion != "'$'{kuberigDslVersion}") { "kuberig.dsl.version $kubeRigDslVersion in kuberig-dsl.properties was not properly replaced during build."}
+            check(kubeRigDslVersion != "0.0.0") { "kuberig.dsl.version $kubeRigDslVersion in kuberig-dsl.properties was not properly replaced during build."}
 
             return KubeRigDslProperties(
-                kubeRigDslVersion,
-                jacksonVersion
+                SemVersion.fromVersionText(kubeRigDslVersion),
+                SemVersion.fromVersionText(jacksonVersion)
             )
         }
 
