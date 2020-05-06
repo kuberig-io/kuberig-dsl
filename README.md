@@ -14,7 +14,7 @@ Create a build.gradle.kts file containing. For different ways of applying the pl
 
 ```kotlin
 plugins {
-    id("eu.rigeldev.kuberig.dsl.generator") version "0.0.15"
+    id("eu.rigeldev.kuberig.dsl.generator") version "0.0.21"
 }
 
 repositories {
