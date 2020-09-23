@@ -105,7 +105,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
 
             this.spec.definitions.forEach { (rawName, definition) ->
 
-                if (definition.vendorExtensions.containsKey("x-kubernetes-group-version-kind")) {
+                if (definition.vendorExtensions != null && definition.vendorExtensions.containsKey("x-kubernetes-group-version-kind")) {
                     val groupVersionKindList = definition.vendorExtensions["x-kubernetes-group-version-kind"]!! as List<Map<*, *>>
 
                     groupVersionKindList.forEach { groupVersionKind ->
