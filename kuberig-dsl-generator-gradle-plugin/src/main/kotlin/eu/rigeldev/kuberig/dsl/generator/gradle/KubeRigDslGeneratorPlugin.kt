@@ -31,35 +31,6 @@ open class KubeRigDslGeneratorPlugin : Plugin<Project> {
 
         val extension = project.extensions.create("kuberigDsl", KubeRigDslGeneratorExtension::class.java, project)
 
-        val props = KubeRigDslProperties.load()
-        val kubeRigDslVersion = props.kubeRigDslVersion.versionText
-        val jacksonVersion = props.jacksonVersion.versionText
-
-        project.dependencies.add(
-            "implementation",
-            "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
-        )
-        project.dependencies.add(
-            "implementation",
-            "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
-        )
-        project.dependencies.add(
-            "implementation",
-            "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
-        )
-        project.dependencies.add(
-            "implementation",
-            "com.fasterxml.jackson.module:jackson-modules-java8:$jacksonVersion"
-        )
-        project.dependencies.add(
-            "implementation",
-            "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion"
-        )
-        project.dependencies.add(
-            "implementation",
-            "eu.rigeldev.kuberig:kuberig-dsl-base:$kubeRigDslVersion"
-        )
-
         project.tasks.register("generateDslSource", KubeRigDslGeneratorTask::class.java) { generateDslSourceTask ->
             generateDslSourceTask.getSwaggerFile().set(project.file(extension.swaggerFileLocation))
             generateDslSourceTask.getSourceOutputDirectory().set(project.file(extension.sourceOutputDirectoryLocation))
@@ -83,6 +54,36 @@ open class KubeRigDslGeneratorPlugin : Plugin<Project> {
             idea.module.apply {
                 generatedSourceDirs.add(sourceOutputDirectory)
             }
+
+            val kubeRigDslExtension = it.extensions.getByType(KubeRigDslGeneratorExtension::class.java)
+
+            val jacksonVersion = kubeRigDslExtension.jacksonVersionOrDefault()
+            val kubeRigDslVersion = kubeRigDslExtension.kubeRigDslVersionOrDefault()
+
+            it.dependencies.add(
+                "implementation",
+                "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
+            )
+            it.dependencies.add(
+                "implementation",
+                "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+            )
+            it.dependencies.add(
+                "implementation",
+                "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
+            )
+            it.dependencies.add(
+                "implementation",
+                "com.fasterxml.jackson.module:jackson-modules-java8:$jacksonVersion"
+            )
+            it.dependencies.add(
+                "implementation",
+                "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion"
+            )
+            it.dependencies.add(
+                "implementation",
+                "eu.rigeldev.kuberig:kuberig-dsl-base:$kubeRigDslVersion"
+            )
         }
     }
 

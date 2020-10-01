@@ -1,6 +1,7 @@
 import com.jfrog.bintray.gradle.BintrayExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+
 buildscript {
     val kotlinVersion by extra("1.3.72")
 
@@ -23,8 +24,8 @@ subprojects {
 
     val subProject = this
 
-    subProject.group = "eu.rigeldev.kuberig"
-    subProject.version = project.version
+    group = "eu.rigeldev.kuberig"
+    version = project.version
 
     repositories {
         jcenter()
@@ -53,10 +54,9 @@ subprojects {
         useJUnitPlatform()
     }
 
+    val sourceSets: SourceSetContainer by this
     val sourcesJar by tasks.registering(Jar::class) {
         archiveClassifier.set("sources")
-
-        val sourceSets: SourceSetContainer by subProject
         from(sourceSets["main"].allSource)
     }
 
@@ -92,6 +92,15 @@ subprojects {
             })
 
             setPublications(subProject.name)
+        }
+    }
+
+    tasks.withType<Jar> {
+        manifest {
+            attributes(
+                "Implementation-Title" to project.name,
+                "Implementation-Version" to project.version
+            )
         }
     }
 }

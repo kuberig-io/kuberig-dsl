@@ -1,18 +1,19 @@
 package eu.rigeldev.kuberig.dsl.generator.gradle;
 
 import eu.rigeldev.test.support.TemporaryFolderExtension;
+import org.gradle.internal.impldep.org.junit.After;
+import org.gradle.internal.impldep.org.junit.Before;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.runner.TaskOutcome;
+import org.gradle.testkit.runner.internal.DefaultGradleRunner;
 import org.gradle.testkit.runner.internal.PluginUnderTestMetadataReading;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 
@@ -42,6 +43,11 @@ public abstract class AbstractDslGenerationTest {
                 "       dirs(\"libs\")",
                 "   }",
                 "   jcenter()",
+                "}",
+                "",
+                "kuberigDsl {",
+                "   kubeRigDslVersion = \"0.0.21\"",
+                "   jacksonVersion = \"2.9.8\"",
                 "}"), StandardCharsets.UTF_8);
 
         final File swaggerFile = temporaryFolder.newFile("src/main/resources/swagger.json");

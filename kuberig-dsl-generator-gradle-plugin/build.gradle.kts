@@ -17,6 +17,8 @@ val projectVersion = if (project.version.toString() == "unspecified") { "0.0.0" 
 
 tasks.test {
     systemProperty("projectVersion", projectVersion)
+
+    dependsOn(tasks.jar)
 }
 
 gradlePlugin {

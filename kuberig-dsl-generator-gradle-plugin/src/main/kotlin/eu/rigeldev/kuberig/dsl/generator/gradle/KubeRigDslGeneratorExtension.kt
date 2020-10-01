@@ -18,20 +18,50 @@ package eu.rigeldev.kuberig.dsl.generator.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.provider.Property
+import java.util.*
 
-open class KubeRigDslGeneratorExtension(project : Project) {
+open class KubeRigDslGeneratorExtension(val project: Project) {
     /**
      * By convention the Swagger API specification file is expected in the 'src/main/resources' directory.
      * And the filename needs to be 'swagger.json'.
      */
-    val swaggerFileLocation : Property<String> = project.objects.property(String::class.java)
+    val swaggerFileLocation: Property<String> = project.objects.property(String::class.java)
+
     /**
      * By convention the DSL sources are generated in
      */
-    val sourceOutputDirectoryLocation : Property<String> = project.objects.property(String::class.java)
+    val sourceOutputDirectoryLocation: Property<String> = project.objects.property(String::class.java)
+
+    var kubeRigDslVersion: String = ""
+
+    var jacksonVersion: String = ""
 
     init {
         this.swaggerFileLocation.set("src/main/resources/swagger.json")
         this.sourceOutputDirectoryLocation.set("build/generated-src/main/kotlin")
+    }
+
+    fun kubeRigDslVersionOrDefault(): String {
+        return this.versionOrDefault(kubeRigDslVersion, KubeRigDslProperties::kubeRigDslVersion)
+    }
+
+    fun jacksonVersionOrDefault(): String {
+        return this.versionOrDefault(jacksonVersion, KubeRigDslProperties::jacksonVersion)
+    }
+
+    private fun versionOrDefault(property: String, semVersion: (KubeRigDslProperties)->SemVersion): String {
+        return if (property == "") {
+            val props = this.loadProps()
+            val dslProps = KubeRigDslProperties.load(props)
+            semVersion(dslProps).versionText
+        } else {
+            property
+        }
+    }
+
+    private fun loadProps() : Properties {
+        val props = Properties()
+        props.load(this::class.java.getResourceAsStream("/kuberig-dsl.properties"))
+        return props
     }
 }

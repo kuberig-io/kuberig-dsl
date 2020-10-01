@@ -1,8 +1,9 @@
 package eu.rigeldev.kuberig.dsl.generator.gradle
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
-import java.lang.IllegalStateException
+import java.util.*
 
 internal class KubeRigDslPropertiesTest {
 
@@ -13,7 +14,14 @@ internal class KubeRigDslPropertiesTest {
      */
     @Test
     fun verifyPropertyLoading() {
-        KubeRigDslProperties.load()
+        val props = Properties()
+        props.setProperty("kuberig.dsl.version", "0.0.22")
+        props.setProperty("jackson.version", "2.9.8")
+
+        val dslProps = KubeRigDslProperties.load(props)
+
+        assertEquals("0.0.22", dslProps.kubeRigDslVersion.versionText)
+        assertEquals("2.9.8", dslProps.jacksonVersion.versionText)
     }
 
     @Test
