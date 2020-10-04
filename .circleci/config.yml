@@ -52,7 +52,7 @@ commands:
           name: Save generated jars into single directory
           command: |
             mkdir -p ~/libs/
-            find . -type f -regex ".*/build/libs/*.jar" -exec cp {} ~/libs/ \;
+            find . -type f -regex ".*/build/libs/.*jar" -exec cp {} ~/libs/ \;
           when: always
       - store_test_results:
           path: ~/test-results
