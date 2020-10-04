@@ -56,8 +56,8 @@ commands:
           export VERSION="<< parameters.version >>"
           echo "VERSION=${VERSION}"
           ./gradlew -Pversion=$VERSION build
-          <<# parameters.upload >> ./gradlew -Pversion=$VERSION bintrayUpload <</ parameters.upload >>
-          <<# parameters.publishPlugins >> ./gradlew -Pversion=$VERSION publishPlugins <</ parameters.publishPlugins >>
+          <<# parameters.upload >>./gradlew -Pversion=$VERSION bintrayUpload <</ parameters.upload >>
+          <<# parameters.publishPlugins >>./gradlew -Pversion=$VERSION -Pgradle.publish.key=$ORG_GRADLE_PROJECT_gradle.publish.key -Pgradle.publish.secret=$ORG_GRADLE_PROJECT_gradle.publish.secret publishPlugins <</ parameters.publishPlugins >>
       #
       - save_cache:
           paths:
