@@ -10,6 +10,29 @@ executors:
       GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
 
 commands:
+  downstream-sync:
+    parameters:
+      version:
+        type: string
+      owner:
+        type: string
+      repo:
+        type: string
+    steps:
+      - run: |
+          cd ~
+          git clone -branch master git@github.com:<< parameters.owner >>/<< parameters.repo >>
+          cd ~/<< parameters.repo >>
+          export VERSION="<< parameters.version >>"
+          echo "VERSION=${VERSION}"
+          sed 's/^version=.*/version=${VERSION}' gradle.properties
+          cat gradle.properties
+          git config user.name "circleci"
+          git config user.email "circleci@rigel.dev"
+          git add --all
+          git commit -m "automatic kuberig-dsl version update to ${VERSION}"
+          git push origin master
+
   gradle-build:
     description: "Execute a gradle-wrapper build with a specific version and conditionally upload it"
     parameters:
@@ -72,11 +95,23 @@ jobs:
   release-build:
     executor: gradle
     steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "d1:87:82:6c:c1:de:05:3e:e7:51:ec:34:3b:eb:a1:fd"
+            - "28:70:df:15:cb:13:fa:db:af:c1:b0:79:31:11:c8:db"
       - checkout
       - gradle-build:
           version: ${CIRCLE_TAG}
           upload: true
           publishPlugins: true
+      - downstream-sync:
+          version: ${CIRCLE_TAG}
+          owner: teyckmans
+          repo: kuberig-dsl-kubernetes
+      - downstream-sync:
+          version: ${CIRCLE_TAG}
+          owner: teyckmans
+          repo: kuberig-dsl-openshift
 
 workflows:
   build:
