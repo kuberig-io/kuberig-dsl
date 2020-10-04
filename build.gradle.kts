@@ -20,6 +20,7 @@ subprojects {
         plugin("java")
         plugin("idea")
         plugin("org.jetbrains.kotlin.jvm")
+        plugin("com.jfrog.bintray")
     }
 
     val subProject = this
@@ -71,28 +72,22 @@ subprojects {
 
     }
 
-    if (System.getenv("BINTRAY_API_KEY") != null){
-        apply {
-            plugin("com.jfrog.bintray")
-        }
+    val bintrayApiKey : String by project
+    val bintrayUser : String by project
 
-        configure<BintrayExtension> {
-            val bintrayApiKey = System.getenv("BINTRAY_API_KEY")
-            val bintrayUser = System.getenv("BINTRAY_USER")
+    configure<BintrayExtension> {
+        user = bintrayUser
+        key = bintrayApiKey
+        publish = true
 
-            user = bintrayUser
-            key = bintrayApiKey
-            publish = true
+        pkg(closureOf<BintrayExtension.PackageConfig> {
+            repo = "rigeldev-oss-maven"
+            name = subProject.name
+            setLicenses("Apache-2.0")
+            vcsUrl = "https://github.com/teyckmans/kuberig-dsl"
+        })
 
-            pkg(closureOf<BintrayExtension.PackageConfig> {
-                repo = "rigeldev-oss-maven"
-                name = subProject.name
-                setLicenses("Apache-2.0")
-                vcsUrl = "https://github.com/teyckmans/kuberig-dsl"
-            })
-
-            setPublications(subProject.name)
-        }
+        setPublications(subProject.name)
     }
 
     tasks.withType<Jar> {
