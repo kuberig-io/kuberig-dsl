@@ -114,15 +114,19 @@ jobs:
   release-build:
     executor: gradle
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "d1:87:82:6c:c1:de:05:3e:e7:51:ec:34:3b:eb:a1:fd"
-            - "28:70:df:15:cb:13:fa:db:af:c1:b0:79:31:11:c8:db"
       - checkout
       - gradle-build:
           version: ${CIRCLE_TAG}
           upload: true
           publishPlugins: true
+  downstream-sync:
+    docker:
+      - image: circleci/openjdk:11-jdk
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "d1:87:82:6c:c1:de:05:3e:e7:51:ec:34:3b:eb:a1:fd"
+            - "28:70:df:15:cb:13:fa:db:af:c1:b0:79:31:11:c8:db"
       - downstream-sync:
           version: ${CIRCLE_TAG}
           owner: teyckmans
@@ -144,6 +148,14 @@ workflows:
     jobs:
       - release-build:
           context: kuberig-context
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/
+      - downstream-sync:
+          requires:
+            - release-build
           filters:
             tags:
               only: /.*/
