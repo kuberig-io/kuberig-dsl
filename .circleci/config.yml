@@ -46,9 +46,7 @@ commands:
         default: false
     steps:
       - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "build.gradle.kts" }}
-            - v1-dependencies-
+          keys: v1-gradle-cache-{{ checksum "build.gradle.kts" }}
       - restore_cache:
           key: v1-gradle-wrapper-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
       #
@@ -56,9 +54,27 @@ commands:
           export VERSION="<< parameters.version >>"
           echo "VERSION=${VERSION}"
           ./gradlew -Pversion=$VERSION build
-          <<# parameters.upload >>./gradlew -Pversion=$VERSION bintrayUpload <</ parameters.upload >>
-          <<# parameters.publishPlugins >>./gradlew -Pversion=$VERSION -Pgradle.publish.key=$ORG_GRADLE_PROJECT_gradle.publish.key -Pgradle.publish.secret=$ORG_GRADLE_PROJECT_gradle.publish.secret publishPlugins <</ parameters.publishPlugins >>
+          <<# parameters.upload >>
+          ./gradlew -Pversion=$VERSION bintrayUpload
+          <</ parameters.upload >>
+          <<# parameters.publishPlugins >>
+          GRADLE_PROPS=~/.gradle/gradle.properties
+          if test -f "$GRADLE_PROPS"; then
+            rm -rf $GRADLE_PROPS
+          fi
+          touch $GRADLE_PROPS
+          echo "gradle.publish.key=$ORG_GRADLE_PROJECT_gradle.publish.key" >> $GRADLE_PROPS
+          echo "gradle.publish.secret=$ORG_GRADLE_PROJECT_gradle.publish.secret" >> $GRADLE_PROPS
+          ./gradlew -Pversion=$VERSION publishPlugins
+          <</ parameters.publishPlugins >>
       #
+      - run:
+          command: |
+            GRADLE_PROPS=~/.gradle/gradle.properties
+            if test -f "$GRADLE_PROPS"; then
+              rm -rf $GRADLE_PROPS
+            fi
+          when: always
       - save_cache:
           paths:
             - ~/.gradle/wrapper
