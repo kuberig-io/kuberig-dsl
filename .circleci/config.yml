@@ -63,8 +63,8 @@ commands:
             rm -rf $GRADLE_PROPS
           fi
           touch $GRADLE_PROPS
-          echo "gradle.publish.key=$ORG_GRADLE_PROJECT_gradle.publish.key" >> $GRADLE_PROPS
-          echo "gradle.publish.secret=$ORG_GRADLE_PROJECT_gradle.publish.secret" >> $GRADLE_PROPS
+          echo "gradle.publish.key=${GRADLE_PUBLISH_KEY}" >> $GRADLE_PROPS
+          echo "gradle.publish.secret=${GRADLE_PUBLISH_SECRET}" >> $GRADLE_PROPS
           ./gradlew -Pversion=$VERSION publishPlugins
           <</ parameters.publishPlugins >>
       #
