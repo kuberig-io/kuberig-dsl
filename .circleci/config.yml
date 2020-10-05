@@ -21,12 +21,15 @@ commands:
     steps:
       - run: |
           cd ~
+          ssh-keyscan github.com >> githubKey
+          ssh-keygen -lf githubKey
+          cat githubKey >> ~/.ssh/known_hosts
           git clone git@github.com:<< parameters.owner >>/<< parameters.repo >>
           cd ~/<< parameters.repo >>
           git checkout master
           export VERSION="<< parameters.version >>"
           echo "VERSION=${VERSION}"
-          sed 's/^version=.*/version="${VERSION}"/g' gradle.properties
+          sed -i '/version=.*/c\version='"${VERSION}"'' gradle.properties
           cat gradle.properties
           git config user.name "circleci"
           git config user.email "circleci@rigel.dev"
