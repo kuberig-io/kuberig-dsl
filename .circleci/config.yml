@@ -23,6 +23,7 @@ commands:
           cd ~
           ssh-keyscan github.com >> githubKey
           ssh-keygen -lf githubKey
+          touch ~/.ssh/known_hosts
           cat githubKey >> ~/.ssh/known_hosts
           git clone git@github.com:<< parameters.owner >>/<< parameters.repo >>
           cd ~/<< parameters.repo >>
