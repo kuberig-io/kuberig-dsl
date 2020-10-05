@@ -127,19 +127,24 @@ jobs:
           version: ${CIRCLE_TAG}
           upload: true
           publishPlugins: true
-  downstream-sync:
+  downstream-kubernetes-sync:
     docker:
       - image: circleci/openjdk:11-jdk
     steps:
       - add_ssh_keys:
           fingerprints:
             - "d1:87:82:6c:c1:de:05:3e:e7:51:ec:34:3b:eb:a1:fd"
-            - "28:70:df:15:cb:13:fa:db:af:c1:b0:79:31:11:c8:db"
-      - checkout
       - downstream-sync:
           version: ${CIRCLE_TAG}
           owner: teyckmans
           repo: kuberig-dsl-kubernetes
+  downstream-openshift-sync:
+    docker:
+      - image: circleci/openjdk:11-jdk
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "28:70:df:15:cb:13:fa:db:af:c1:b0:79:31:11:c8:db"
       - downstream-sync:
           version: ${CIRCLE_TAG}
           owner: teyckmans
@@ -162,7 +167,15 @@ workflows:
               only: /.*/
             branches:
               ignore: /.*/
-      - downstream-sync:
+      - downstream-kubernetes-sync:
+          requires:
+            - release-build
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/
+      - downstream-openshift-sync:
           requires:
             - release-build
           filters:
