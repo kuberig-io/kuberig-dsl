@@ -21,10 +21,14 @@ commands:
     steps:
       - run: |
           cd ~
-          ssh-keyscan github.com >> githubKey
-          ssh-keygen -lf githubKey
-          touch ~/.ssh/known_hosts
-          cat githubKey >> ~/.ssh/known_hosts
+          if [ ! -f ".ssh/known_hosts" ]
+          then
+            [ ! -d ".ssh" ] && mkdir .ssh
+            ssh-keyscan github.com >> githubKey
+            ssh-keygen -lf githubKey
+            touch ~/.ssh/known_hosts
+            cat githubKey >> ~/.ssh/known_hosts
+          fi
           git clone git@github.com:<< parameters.owner >>/<< parameters.repo >>
           cd ~/<< parameters.repo >>
           git checkout master
