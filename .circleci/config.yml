@@ -39,7 +39,7 @@ commands:
           git config user.name "circleci"
           git config user.email "circleci@rigel.dev"
           git add --all
-          git commit -m "automatic kuberig-dsl version update to ${VERSION}"
+          git commit -m "automatic kuberig-dsl version update to ${VERSION} [skip ci]"
           git push origin master
 
   gradle-build:
