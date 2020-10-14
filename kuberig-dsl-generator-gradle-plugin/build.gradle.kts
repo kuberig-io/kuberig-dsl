@@ -24,10 +24,10 @@ tasks.test {
 gradlePlugin {
     plugins {
         create("kuberig-dsl-generator-gradle-plugin") {
-            id = "eu.rigeldev.kuberig.dsl.generator"
+            id = "io.kuberig.dsl.generator"
             displayName = "Kuberig Kotlin DSL generator plugin"
             description = "This plugin is used to generate a Kotlin DSL based on a Kubernetes or Openshift swagger API definition."
-            implementationClass = "eu.rigeldev.kuberig.dsl.generator.gradle.KubeRigDslGeneratorPlugin"
+            implementationClass = "io.kuberig.dsl.generator.gradle.KubeRigDslGeneratorPlugin"
         }
     }
 }
@@ -39,7 +39,7 @@ pluginBundle {
 }
 
 (tasks.getByName("processResources") as ProcessResources).apply {
-    filesMatching("kuberig-dsl.properties") {
+    filesMatching("io.kuberig.dsl.generator.properties") {
         expand(
             Pair("kuberigDslVersion", projectVersion)
         )

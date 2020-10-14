@@ -25,7 +25,7 @@ subprojects {
 
     val subProject = this
 
-    group = "eu.rigeldev.kuberig"
+    group = "io.kuberig"
     version = project.version
 
     repositories {

@@ -11,11 +11,11 @@ Generates a Kotlin DSL based on the swagger api spec of Kubernetes and OpenShift
 Place the swagger API definition file from your API server in src\main\resources\swagger.json.
 
 Create a build.gradle.kts file containing. For different ways of applying the plugin please check the 
-[Gradle plugin portal](https://plugins.gradle.org/plugin/eu.rigeldev.kuberig.dsl.generator).
+[Gradle plugin portal](https://plugins.gradle.org/plugin/io.kuberig.dsl.generator).
 
 ```kotlin
 plugins {
-    id("eu.rigeldev.kuberig.dsl.generator") version "0.0.21"
+    id("io.kuberig.dsl.generator") version "0.0.21"
 }
 
 repositories {
