@@ -29,7 +29,7 @@ open class KubeRigDslGeneratorPlugin : Plugin<Project> {
         project.plugins.apply("idea")
         project.plugins.apply("org.jetbrains.kotlin.jvm")
 
-        val extension = project.extensions.create("kuberigDsl", KubeRigDslGeneratorExtension::class.java, project)
+        val extension = project.extensions.create("kuberigDsl", KubeRigDslGeneratorExtension::class.java)
 
         project.tasks.register("generateDslSource", KubeRigDslGeneratorTask::class.java) { generateDslSourceTask ->
             generateDslSourceTask.getSwaggerFile().set(project.file(extension.swaggerFileLocation))

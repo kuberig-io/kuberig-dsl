@@ -16,21 +16,24 @@
 
 package io.kuberig.dsl.generator.gradle
 
-import org.gradle.api.Project
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import java.util.*
+import javax.inject.Inject
 
-open class KubeRigDslGeneratorExtension(val project: Project) {
+open class KubeRigDslGeneratorExtension(
+        @Inject val objectFactory: ObjectFactory
+) {
     /**
      * By convention the Swagger API specification file is expected in the 'src/main/resources' directory.
      * And the filename needs to be 'swagger.json'.
      */
-    val swaggerFileLocation: Property<String> = project.objects.property(String::class.java)
+    val swaggerFileLocation: Property<String> = this.objectFactory.property(String::class.java)
 
     /**
      * By convention the DSL sources are generated in
      */
-    val sourceOutputDirectoryLocation: Property<String> = project.objects.property(String::class.java)
+    val sourceOutputDirectoryLocation: Property<String> = this.objectFactory.property(String::class.java)
 
     var kubeRigDslVersion: String = ""
 
