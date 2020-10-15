@@ -30,20 +30,20 @@ public abstract class AbstractDslGenerationTest {
         final File sourceSwaggerFile = new File("src/test/resources/swagger/" + platformName + "/swagger-" + platformVersion + ".json");
         final List<String> sourceSwaggerLines = Files.readAllLines(sourceSwaggerFile.toPath(), StandardCharsets.UTF_8);
 
+        final String projectVersion = System.getProperty("projectVersion");
+
         final File buildFile = temporaryFolder.newFile("build.gradle.kts");
         Files.write(buildFile.toPath(), Arrays.asList(
                 "plugins {",
                 "   id(\"io.kuberig.dsl.generator\") ",
                 "}",
                 "repositories {",
-                "   flatDir {",
-                "       dirs(\"libs\")",
-                "   }",
+                "   mavenLocal()",
                 "   jcenter()",
                 "}",
                 "",
                 "kuberigDsl {",
-                "   kubeRigDslVersion = \"0.0.21\"",
+                "   kubeRigDslVersion = \"" + projectVersion + "\"",
                 "   jacksonVersion = \"2.9.8\"",
                 "}"), StandardCharsets.UTF_8);
 
@@ -71,7 +71,6 @@ public abstract class AbstractDslGenerationTest {
         In case no version is specified the jar generated in the libs directory does not have a versions.
         This is problematic in for the fileTree repository so we add it when missing.
          */
-        String projectVersion = System.getProperty("projectVersion");
         final File sourcePluginJarFile;
         if (projectVersion.equals("0.0.0")) {
             sourcePluginJarFile = new File(buildDir, "libs/kuberig-dsl-generator-gradle-plugin.jar");
@@ -106,8 +105,7 @@ public abstract class AbstractDslGenerationTest {
 
             assertSame(result.task(":build").getOutcome(), TaskOutcome.SUCCESS);
             assertSame(result.task(":generateDslSource").getOutcome(), TaskOutcome.SUCCESS);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             throw e;
         }

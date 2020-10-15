@@ -45,3 +45,9 @@ pluginBundle {
         )
     }
 }
+
+tasks {
+    build {
+        dependsOn(":kuberig-dsl-base:publishToMavenLocal")
+    }
+}
