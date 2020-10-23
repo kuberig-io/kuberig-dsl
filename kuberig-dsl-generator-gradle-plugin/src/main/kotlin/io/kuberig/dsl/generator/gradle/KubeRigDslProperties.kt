@@ -21,8 +21,8 @@ class KubeRigDslProperties(val kubeRigDslVersion: SemVersion, val jacksonVersion
 
         fun load(kubeRigDslVersion: String, jacksonVersion: String): KubeRigDslProperties {
 
-//            check(kubeRigDslVersion != "'$'{kuberigDslVersion}") { "kuberig.dsl.version $kubeRigDslVersion in io.kuberig.dsl.generator.properties was not properly replaced during build."}
-//            check(kubeRigDslVersion != "0.0.0") { "kuberig.dsl.version $kubeRigDslVersion in io.kuberig.dsl.generator.properties was not properly replaced during build."}
+            check(kubeRigDslVersion != "'$'{kuberigDslVersion}") { "kuberig.dsl.version $kubeRigDslVersion in io.kuberig.dsl.generator.properties was not properly replaced during build."}
+            check(kubeRigDslVersion != "0.0.0") { "kuberig.dsl.version $kubeRigDslVersion in io.kuberig.dsl.generator.properties was not properly replaced during build."}
 
             return KubeRigDslProperties(
                 SemVersion.fromVersionText(kubeRigDslVersion),
