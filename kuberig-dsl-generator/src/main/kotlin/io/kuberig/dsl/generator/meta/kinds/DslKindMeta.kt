@@ -34,7 +34,7 @@ class DslKindMeta(val typeName : DslTypeName,
     /**
      * Correctly converts the name of a kind to a method name.
      *
-     * Deals with kind names like WatchEvent but also APIVersion correctly (notice the difference in uppercase letters).
+     * Deals with kind names like WatchEvent but also APIVersion and DNS correctly (notice the difference in uppercase letters).
      */
     fun methodName() : String {
         val kindCharacters = kind.toCharArray()
@@ -53,13 +53,18 @@ class DslKindMeta(val typeName : DslTypeName,
             characterIndex++
         }
 
-        val splitIndex = if (firstLowerCaseLetterIndex == 1) {
-            1
-        } else {
-            firstLowerCaseLetterIndex -1
+        return if (firstLowerCaseLetterIndex == -1) {
+            kind.toLowerCase()
         }
+        else {
+            val splitIndex = if (firstLowerCaseLetterIndex == 1) {
+                1
+            } else {
+                firstLowerCaseLetterIndex - 1
+            }
 
-        return kind.substring(0, splitIndex).toLowerCase() + kind.substring(splitIndex)
+            return kind.substring(0, splitIndex).toLowerCase() + kind.substring(splitIndex)
+        }
     }
 
     fun apiVersion() : String {

@@ -68,6 +68,13 @@ class KotlinApiTypeGenerator(
                         DslTypeName("io.kuberig.dsl.model.BasicResource"),
                         listOf("kind", "apiVersion")
                 )
+
+                if (typeMeta.attributes.isEmpty()) {
+                    typeMeta.attributes = mapOf(
+                        "kind" to DslObjectAttributeMeta("kind", "", false, DslTypeName("String")),
+                        "apiVersion" to DslObjectAttributeMeta("apiVersion", "", false, DslTypeName("String"))
+                    )
+                }
             }
         }
 

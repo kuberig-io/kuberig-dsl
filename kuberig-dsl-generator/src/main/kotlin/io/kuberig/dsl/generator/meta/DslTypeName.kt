@@ -17,8 +17,7 @@
 package io.kuberig.dsl.generator.meta
 
 class DslTypeName(val rawName : String) {
-    // compensate for apiextensions-apiserver in package name
-    val absoluteName : String = this.rawName.replace('-', '.')
+    val absoluteName : String = this.rawName.replace('-', '_')
 
     private fun dottedName() : Boolean {
         return absoluteName.contains('.')
