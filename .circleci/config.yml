@@ -9,7 +9,7 @@ executors:
           password: $DOCKERHUB_PASSWORD
     working_directory: ~/repo
     environment:
-      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=1"
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
 
 commands:
   downstream-sync:
