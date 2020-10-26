@@ -340,7 +340,17 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
                         )
                     )
                 }
-                else -> println("[SKIPPED] $typeName don't know how to handle format: ${dslClassInfo.format}")
+                else -> {
+                    this.dslMeta.registerType(
+                        DslContainerTypeMeta(
+                            typeName,
+                            documentation,
+                            emptySet(),
+                            DslTypeName("String")
+                        )
+                    )
+                    println("[WARN] $typeName don't know how to handle format: ${dslClassInfo.format} defaulting to simple string")
+                }
             }
 
         }
@@ -492,6 +502,7 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
             is BaseIntegerProperty -> propertyType = "Int"
             is BooleanProperty -> propertyType = "Boolean"
             is DoubleProperty -> propertyType = "Double"
+            is DecimalProperty -> propertyType = "java.math.BigDecimal"
             is DateTimeProperty -> propertyType = "java.time.ZonedDateTime"
             is ArrayProperty -> throw IllegalStateException("should not be called for ArrayProperty")
             is MapProperty -> throw IllegalStateException("should not be called for MapProperty")
@@ -518,7 +529,9 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
                     }
                 }
             }
-            else -> println("[WARN] unhandled property ${property.name} of type ${property.type}")
+            else -> {
+                println("[WARN] unhandled property $owningAttributeName of type ${property.type}")
+            }
         }
 
         return propertyType

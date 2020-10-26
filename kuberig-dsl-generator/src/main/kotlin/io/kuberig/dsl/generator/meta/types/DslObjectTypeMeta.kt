@@ -16,8 +16,8 @@
 
 package io.kuberig.dsl.generator.meta.types
 
-import io.kuberig.dsl.generator.meta.attributes.DslAttributeMeta
 import io.kuberig.dsl.generator.meta.DslTypeName
+import io.kuberig.dsl.generator.meta.attributes.DslAttributeMeta
 
 /**
  * API types with attributes.
@@ -26,6 +26,6 @@ class DslObjectTypeMeta(
         typeName: DslTypeName,
         description: String,
         typeDependencies: Set<DslTypeName>,
-        val attributes: Map<String, DslAttributeMeta>,
+        var attributes: Map<String, DslAttributeMeta>,
         val kindType: Boolean
 ) : DslTypeMeta(typeName, description, typeDependencies)
