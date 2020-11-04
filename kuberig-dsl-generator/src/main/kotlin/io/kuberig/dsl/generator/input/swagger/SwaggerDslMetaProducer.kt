@@ -151,11 +151,13 @@ class SwaggerDslMetaProducer(private val swaggerFile: File) : DslMetaProducer {
 
                 val definition = spec.definitions[kindType.types[typeIndex]]!!
 
-                val metadataAttribute = definition.properties["metadata"]
+                if (definition.properties != null && definition.properties.containsKey("metadata")) {
+                    val metadataAttribute = definition.properties["metadata"]
 
-                if (metadataAttribute != null) {
-                    if (metadataAttribute is RefProperty) {
-                        fullMetadataTypename = DslTypeName(metadataAttribute.simpleRef)
+                    if (metadataAttribute != null) {
+                        if (metadataAttribute is RefProperty) {
+                            fullMetadataTypename = DslTypeName(metadataAttribute.simpleRef)
+                        }
                     }
                 }
 
