@@ -33,8 +33,8 @@ gradlePlugin {
 }
 
 pluginBundle {
-    website = "https://github.com/teyckmans/kuberig-dsl"
-    vcsUrl = "https://github.com/teyckmans/kuberig-dsl"
+    website = project.properties["websiteUrl"]!! as String
+    vcsUrl = project.properties["vcsUrl"]!! as String
     tags = listOf("kubernetes", "kotlin", "dsl", "generator", "openshift")
 }
 

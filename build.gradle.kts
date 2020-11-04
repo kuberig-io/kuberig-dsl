@@ -84,7 +84,9 @@ subprojects {
             repo = "rigeldev-oss-maven"
             name = "io-kuberig-" + subProject.name
             setLicenses("Apache-2.0")
-            vcsUrl = "https://github.com/teyckmans/kuberig-dsl"
+            isPublicDownloadNumbers = true
+            websiteUrl = project.properties["websiteUrl"]!! as String
+            vcsUrl = project.properties["vcsUrl"]!! as String
         })
 
         setPublications(subProject.name)
