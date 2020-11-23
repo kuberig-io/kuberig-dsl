@@ -1,9 +1,6 @@
 package io.kuberig.dsl.generator.gradle
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
-import java.util.*
 
 internal class KubeRigDslPropertiesTest {
 
@@ -14,42 +11,9 @@ internal class KubeRigDslPropertiesTest {
      */
     @Test
     fun verifyPropertyLoading() {
-        val props = Properties()
-        props.setProperty("kuberig.dsl.version", "0.0.22")
-        props.setProperty("jackson.version", "2.9.8")
+        val dslProps = KubeRigDslProperties.load()
 
-        val dslProps = KubeRigDslProperties.load(props)
-
-        assertEquals("0.0.22", dslProps.kubeRigDslVersion.versionText)
-        assertEquals("2.9.8", dslProps.jacksonVersion.versionText)
-    }
-
-    @Test
-    fun fallbackVersion() {
-        assertThrows(IllegalStateException::class.java) {
-            KubeRigDslProperties.load("0.0.0", "2.9.8")
-        }
-    }
-
-    @Test
-    fun notReplaced() {
-        assertThrows(IllegalStateException::class.java) {
-            KubeRigDslProperties.load("'$'{kuberigDslVersion}", "2.9.8")
-        }
-    }
-
-    @Test
-    fun dslVersionNotSemVersion() {
-        assertThrows(IllegalStateException::class.java) {
-            KubeRigDslProperties.load("1.1-alpha", "2.9.8")
-        }
-    }
-
-    @Test
-    fun jacksonVersionNotSemVersion() {
-        assertThrows(IllegalStateException::class.java) {
-            KubeRigDslProperties.load("0.0.20", "3.0-RC.1")
-        }
+        check(dslProps.kubeRigDslVersion != "'$'{kuberigDslVersion}") { "kuberig.dsl.version ${dslProps.kubeRigDslVersion} in io.kuberig.dsl.generator.properties was not properly replaced during build."}
     }
 
 }

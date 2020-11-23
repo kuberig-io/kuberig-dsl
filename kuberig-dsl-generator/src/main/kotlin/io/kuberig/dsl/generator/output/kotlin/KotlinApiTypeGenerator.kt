@@ -18,18 +18,20 @@ package io.kuberig.dsl.generator.output.kotlin
 
 import io.kuberig.dsl.generator.meta.DslMeta
 import io.kuberig.dsl.generator.meta.DslTypeName
+import io.kuberig.dsl.generator.meta.attributes.DslAttributeMeta
 import io.kuberig.dsl.generator.meta.attributes.DslListAttributeMeta
 import io.kuberig.dsl.generator.meta.attributes.DslMapAttributeMeta
 import io.kuberig.dsl.generator.meta.attributes.DslObjectAttributeMeta
 import io.kuberig.dsl.generator.meta.types.*
 
 class KotlinApiTypeGenerator(
-        private val classWriterProducer : KotlinClassWriterProducer,
-        private val dslMeta: DslMeta) {
+    private val classWriterProducer: KotlinClassWriterProducer,
+    private val dslMeta: DslMeta
+) {
 
-    fun generateApiType(typeName : DslTypeName, typeMeta : DslTypeMeta) {
+    fun generateApiType(typeName: DslTypeName, typeMeta: DslTypeMeta) {
 
-        when(typeMeta) {
+        when (typeMeta) {
             is DslObjectTypeMeta -> this.generateObjectType(typeName, typeMeta)
             is DslContainerTypeMeta -> this.generateContainerType(typeName, typeMeta)
             is DslSealedTypeMeta -> this.generatedSealedType(typeName, typeMeta)
@@ -39,7 +41,27 @@ class KotlinApiTypeGenerator(
 
     }
 
-    private fun generateObjectType(typeName : DslTypeName, typeMeta: DslObjectTypeMeta) {
+    private fun addRequiredAttributes(
+        typeMeta: DslObjectTypeMeta,
+        requiredAttributes: Map<String, () -> DslAttributeMeta>
+    ) {
+        for (requiredAttribute in requiredAttributes) {
+            val requiredAttributeName = requiredAttribute.key
+            val currentAttributes = typeMeta.attributes
+
+            if (!currentAttributes.containsKey(requiredAttributeName)) {
+                val newAttributes = mutableMapOf<String, DslAttributeMeta>()
+                newAttributes.putAll(currentAttributes)
+
+                val missingValueProvider = requiredAttribute.value;
+                newAttributes[requiredAttributeName] = missingValueProvider()
+
+                typeMeta.attributes = newAttributes.toMap()
+            }
+        }
+    }
+
+    private fun generateObjectType(typeName: DslTypeName, typeMeta: DslObjectTypeMeta) {
         val kotlinClassWriter = KotlinClassWriter(typeName, this.classWriterProducer)
 
         val fullMetaDataTypeName = this.dslMeta.resourceMetadataType
@@ -52,33 +74,38 @@ class KotlinApiTypeGenerator(
 
         if (typeMeta.kindType) {
             val metadataAttribute = typeMeta.attributes["metadata"]
-            val fullResource = if(metadataAttribute != null) {
+            val fullResource = if (metadataAttribute != null) {
                 metadataAttribute.absoluteAttributeDeclarationType().absoluteName == fullMetaDataTypeName.absoluteName
             } else {
                 false
             }
 
+            val requiredAttributes = mutableMapOf(
+                "kind" to { DslObjectAttributeMeta("kind", "", false, DslTypeName("String")) },
+                "apiVersion" to { DslObjectAttributeMeta("apiVersion", "", false, DslTypeName("String")) }
+            )
+
             if (fullResource) {
                 kotlinClassWriter.typeParent(
-                        DslTypeName("io.kuberig.dsl.model.FullResource"),
-                        listOf("kind", "apiVersion", "metadata")
+                    DslTypeName("io.kuberig.dsl.model.FullResource"),
+                    listOf("kind", "apiVersion", "metadata")
                 )
+
+                requiredAttributes["metadata"] = { DslObjectAttributeMeta("kind", "", false, fullMetaDataTypeName) }
             } else {
                 kotlinClassWriter.typeParent(
-                        DslTypeName("io.kuberig.dsl.model.BasicResource"),
-                        listOf("kind", "apiVersion")
+                    DslTypeName("io.kuberig.dsl.model.BasicResource"),
+                    listOf("kind", "apiVersion")
                 )
-
-                if (typeMeta.attributes.isEmpty()) {
-                    typeMeta.attributes = mapOf(
-                        "kind" to DslObjectAttributeMeta("kind", "", false, DslTypeName("String")),
-                        "apiVersion" to DslObjectAttributeMeta("apiVersion", "", false, DslTypeName("String"))
-                    )
-                }
             }
+
+            addRequiredAttributes(
+                typeMeta,
+                requiredAttributes
+            )
         }
 
-        kotlinClassWriter.use {classWriter ->
+        kotlinClassWriter.use { classWriter ->
             classWriter.typeDocumentation(typeMeta.description)
 
             typeMeta.attributes.minus("status").forEach { (attributeName, attributeMeta) ->
@@ -123,14 +150,14 @@ class KotlinApiTypeGenerator(
 
     }
 
-    private fun generateContainerType(typeName : DslTypeName, typeMeta: DslContainerTypeMeta) {
+    private fun generateContainerType(typeName: DslTypeName, typeMeta: DslContainerTypeMeta) {
         val serializerType = DslTypeName(
             typeName.packageName() + "." + typeMeta.typeName.typeShortName() + "_Serializer"
         )
 
         val kotlinClassWriter = KotlinClassWriter(typeName, this.classWriterProducer)
         // the container type
-        kotlinClassWriter.use {classWriter ->
+        kotlinClassWriter.use { classWriter ->
 
             classWriter.typeDocumentation(typeMeta.description)
 
@@ -180,7 +207,7 @@ class KotlinApiTypeGenerator(
         }
     }
 
-    private fun generatedSealedType(typeName : DslTypeName, typeMeta: DslSealedTypeMeta) {
+    private fun generatedSealedType(typeName: DslTypeName, typeMeta: DslSealedTypeMeta) {
 
         val serializerType = DslTypeName(
             typeName.packageName() + "." + typeMeta.typeName.typeShortName() + "_Serializer"
@@ -260,7 +287,7 @@ class KotlinApiTypeGenerator(
 
     }
 
-    private fun generateInterfaceType(typeName : DslTypeName, typeMeta: DslInterfaceTypeMeta) {
+    private fun generateInterfaceType(typeName: DslTypeName, typeMeta: DslInterfaceTypeMeta) {
         val kotlinClassWriter = KotlinClassWriter(typeName, this.classWriterProducer)
 
         kotlinClassWriter.use { classWriter ->
@@ -272,7 +299,7 @@ class KotlinApiTypeGenerator(
     /**
      * TODO this most likely does not cover everything
      */
-    private fun determineJsonWriteMethod(typeName : DslTypeName) : String {
+    private fun determineJsonWriteMethod(typeName: DslTypeName): String {
         return when {
             "Int" == typeName.typeShortName() -> "writeNumber"
             "String" == typeName.typeShortName() -> "writeString"

@@ -14,6 +14,13 @@ buildscript {
     }
 }
 
+val projectVersion = if (project.version.toString() == "unspecified") {
+    println("Defaulting to version 0.0.0")
+    "0.0.0"
+} else {
+    project.version.toString()
+}
+
 subprojects {
     apply {
         plugin("maven-publish")
@@ -26,7 +33,7 @@ subprojects {
     val subProject = this
 
     group = "io.kuberig"
-    version = project.version
+    subProject.version = projectVersion
 
     repositories {
         jcenter()

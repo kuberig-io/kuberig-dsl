@@ -13,10 +13,8 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.2")
 }
 
-val projectVersion = if (project.version.toString() == "unspecified") { "0.0.0" } else { project.version.toString() }
-
 tasks.test {
-    systemProperty("projectVersion", projectVersion)
+    systemProperty("projectVersion", project.version.toString())
 
     dependsOn(tasks.jar)
 }
@@ -38,16 +36,20 @@ pluginBundle {
     tags = listOf("kubernetes", "kotlin", "dsl", "generator", "openshift")
 }
 
-(tasks.getByName("processResources") as ProcessResources).apply {
+tasks.named<ProcessResources>("processResources") {
+    doFirst {
+        println("ProcessResources using version: " + project.version.toString())
+        check(project.version.toString() != "unspecified")
+    }
     filesMatching("io.kuberig.dsl.generator.properties") {
         expand(
-            Pair("kuberigDslVersion", projectVersion)
+            Pair("kuberigDslVersion", project.version.toString())
         )
     }
 }
 
 tasks {
-    build {
+    test {
         dependsOn(":kuberig-dsl-base:publishToMavenLocal")
     }
 }

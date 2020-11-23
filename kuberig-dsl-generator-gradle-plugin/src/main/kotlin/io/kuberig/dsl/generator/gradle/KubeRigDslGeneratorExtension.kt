@@ -18,7 +18,6 @@ package io.kuberig.dsl.generator.gradle
 
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
-import java.util.*
 import javax.inject.Inject
 
 open class KubeRigDslGeneratorExtension(
@@ -52,19 +51,12 @@ open class KubeRigDslGeneratorExtension(
         return this.versionOrDefault(jacksonVersion, KubeRigDslProperties::jacksonVersion)
     }
 
-    private fun versionOrDefault(property: String, semVersion: (KubeRigDslProperties)-> SemVersion): String {
+    private fun versionOrDefault(property: String, semVersion: (KubeRigDslProperties)-> String): String {
         return if (property == "") {
-            val props = this.loadProps()
-            val dslProps = KubeRigDslProperties.load(props)
-            semVersion(dslProps).versionText
+            val dslProps = KubeRigDslProperties.load()
+            semVersion(dslProps)
         } else {
             property
         }
-    }
-
-    private fun loadProps() : Properties {
-        val props = Properties()
-        props.load(this::class.java.getResourceAsStream("/io.kuberig.dsl.generator.properties"))
-        return props
     }
 }
