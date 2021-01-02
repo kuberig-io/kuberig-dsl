@@ -1,4 +1,4 @@
-[![KubeRig Logo](https://github.com/kuberig-io/kuberig/blob/master/docs/images/website_logo_transparent_background.png)](https://kuberig.io)
+[![KubeRig Logo](https://kuberig.io/img/logo/website_logo_transparent_background.png)](https://kuberig.io)
 
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/kuberig-io/kuberig-dsl.svg?label=latest%20release)
 [![kuberig-io](https://circleci.com/gh/kuberig-io/kuberig-dsl.svg?style=svg)](https://app.circleci.com/pipelines/github/kuberig-io/kuberig-dsl)
@@ -6,6 +6,8 @@
 # kuberig-dsl
 
 Generates a Kotlin DSL based on the swagger api spec of Kubernetes and OpenShift.
+
+Want to know more about Kuberig checkout [kuberig.io](https://kuberig.io).
 
 ## API generator project
 Place the swagger API definition file from your API server in src\main\resources\swagger.json.
@@ -15,7 +17,7 @@ Create a build.gradle.kts file containing. For different ways of applying the pl
 
 ```kotlin
 plugins {
-    id("io.kuberig.dsl.generator") version "0.0.21"
+    id("io.kuberig.dsl.generator") version "0.1.4"
 }
 
 repositories {
