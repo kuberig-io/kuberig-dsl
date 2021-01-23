@@ -1,11 +1,9 @@
 package io.kuberig.dsl.generator.output.kotlin
 
 import io.kuberig.dsl.generator.meta.DslTypeName
-import io.kuberig.dsl.generator.output.kotlin.KotlinClassWriter
-import io.kuberig.dsl.generator.output.kotlin.KotlinClassWriterProducer
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
 import java.io.File
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class KotlinClassWriterTest {
 

@@ -17,6 +17,8 @@ tasks.test {
     systemProperty("projectVersion", project.version.toString())
 
     dependsOn(tasks.jar)
+
+    useJUnitPlatform()
 }
 
 gradlePlugin {

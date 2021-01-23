@@ -20,7 +20,7 @@ import io.kuberig.dsl.generator.input.DslMetaProducer
 import io.kuberig.dsl.generator.input.swagger.SwaggerDslMetaProducer
 import io.kuberig.dsl.generator.output.DslMetaConsumer
 import io.kuberig.dsl.generator.output.kotlin.KotlinDslMetaConsumer
-import java.io.*
+import java.io.File
 
 
 class DslCodeGenerator(projectRootDirectory: File) {
@@ -46,8 +46,4 @@ class DslCodeGenerator(projectRootDirectory: File) {
 
         kotlinDslMetaConsumer.consume(dslMeta)
     }
-}
-
-fun main(args : Array<String>) {
-    DslCodeGenerator(File(args[0])).generate()
 }

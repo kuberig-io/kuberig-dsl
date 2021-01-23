@@ -28,6 +28,7 @@ subprojects {
         plugin("idea")
         plugin("org.jetbrains.kotlin.jvm")
         plugin("com.jfrog.bintray")
+        plugin("jacoco")
     }
 
     val subProject = this
@@ -47,8 +48,12 @@ subprojects {
 
         implementation(kotlin("stdlib-jdk8"))
 
-        testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.2")
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.2")
+        // Use the Kotlin test library.
+        testImplementation("org.jetbrains.kotlin:kotlin-test")
+
+        // Use the Kotlin JUnit integration.
+        testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
+
     }
 
     configure<JavaPluginConvention> {
@@ -59,8 +64,17 @@ subprojects {
     }
 
     tasks.named<Test>("test") {
-        useJUnitPlatform()
+        finalizedBy(tasks.getByName("jacocoTestReport")) // report is always generated after tests run
     }
+    tasks.named<JacocoReport>("jacocoTestReport") {
+        dependsOn(tasks.getByName("test")) // tests are required to run before generating the report
+        reports {
+            xml.isEnabled = true
+            csv.isEnabled = false
+        }
+    }
+
+    tasks.getByName("check").dependsOn(tasks.getByName("jacocoTestReport"))
 
     val sourceSets: SourceSetContainer by this
     val sourcesJar by tasks.registering(Jar::class) {
