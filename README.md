@@ -7,7 +7,7 @@
 
 Generates a Kotlin DSL based on the swagger api spec of Kubernetes and OpenShift.
 
-Want to know more about Kuberig checkout [kuberig.io](https://kuberig.io).
+Want to know more about Kuberig checkout [kuberig.io](https://kuberig.io). 
 
 ## API generator project
 Place the swagger API definition file from your API server in src\main\resources\swagger.json.
