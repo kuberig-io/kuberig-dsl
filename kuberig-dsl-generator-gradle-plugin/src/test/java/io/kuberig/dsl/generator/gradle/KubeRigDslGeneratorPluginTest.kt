@@ -1,9 +1,7 @@
 package io.kuberig.dsl.generator.gradle
 
 import org.gradle.testfixtures.ProjectBuilder
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+import kotlin.test.*
 
 class KubeRigDslGeneratorPluginTest {
 

@@ -7,18 +7,8 @@ dependencies {
     val kotlinVersion = project.properties["kotlinVersion"]
     
     implementation(project(":kuberig-dsl-generator"))
+
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.2")
-}
-
-tasks.test {
-    systemProperty("projectVersion", project.version.toString())
-
-    dependsOn(tasks.jar)
-
-    useJUnitPlatform()
 }
 
 gradlePlugin {
@@ -50,8 +40,21 @@ tasks.named<ProcessResources>("processResources") {
     }
 }
 
-tasks {
-    test {
-        dependsOn(":kuberig-dsl-base:publishToMavenLocal")
-    }
+// Add a source set for the functional test suite
+val functionalTestSourceSet = sourceSets.create("functionalTest") {
+}
+
+gradlePlugin.testSourceSets(functionalTestSourceSet)
+configurations["functionalTestImplementation"].extendsFrom(configurations["testImplementation"])
+
+// Add a task to run the functional tests
+val functionalTest by tasks.registering(Test::class) {
+    testClassesDirs = functionalTestSourceSet.output.classesDirs
+    classpath = functionalTestSourceSet.runtimeClasspath
+    setForkEvery(1)
+}
+
+tasks.check {
+    // Run the functional tests as part of `check`
+    dependsOn(functionalTest)
 }

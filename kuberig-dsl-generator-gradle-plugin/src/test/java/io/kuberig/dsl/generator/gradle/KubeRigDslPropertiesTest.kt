@@ -1,6 +1,6 @@
 package io.kuberig.dsl.generator.gradle
 
-import org.junit.jupiter.api.Test
+import kotlin.test.*
 
 internal class KubeRigDslPropertiesTest {
 

@@ -5,7 +5,7 @@ import java.io.File
 class DslCodeGenerationTestSupport(private val projectDir: File) {
 
     fun generateDslCode(platform: String, version: String) {
-        val sourceSwaggerFile = File("src/test/resources/swagger/$platform/swagger-$version.json")
+        val sourceSwaggerFile = File("../openapi-specs/$platform/swagger-$version.json")
 
         val targetSwaggerFile = File(projectDir, "src/main/resources/swagger.json")
         targetSwaggerFile.absoluteFile.parentFile.mkdirs()
