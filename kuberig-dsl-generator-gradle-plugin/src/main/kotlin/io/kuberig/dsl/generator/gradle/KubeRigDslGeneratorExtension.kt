@@ -21,7 +21,7 @@ import org.gradle.api.provider.Property
 import javax.inject.Inject
 
 open class KubeRigDslGeneratorExtension(
-        @Inject val objectFactory: ObjectFactory
+        @Inject private val objectFactory: ObjectFactory
 ) {
     /**
      * By convention the Swagger API specification file is expected in the 'src/main/resources' directory.
@@ -51,10 +51,10 @@ open class KubeRigDslGeneratorExtension(
         return this.versionOrDefault(jacksonVersion, KubeRigDslProperties::jacksonVersion)
     }
 
-    private fun versionOrDefault(property: String, semVersion: (KubeRigDslProperties)-> String): String {
+    private fun versionOrDefault(property: String, versionSupplier: (KubeRigDslProperties)-> String): String {
         return if (property == "") {
             val dslProps = KubeRigDslProperties.load()
-            semVersion(dslProps)
+            versionSupplier(dslProps)
         } else {
             property
         }
