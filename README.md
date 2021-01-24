@@ -2,6 +2,7 @@
 
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/kuberig-io/kuberig-dsl.svg?label=latest%20release)
 [![kuberig-io](https://circleci.com/gh/kuberig-io/kuberig-dsl.svg?style=svg)](https://app.circleci.com/pipelines/github/kuberig-io/kuberig-dsl)
+[![codecov](https://codecov.io/gh/kuberig-io/kuberig-dsl/branch/master/graph/badge.svg?token=R9B4I8T68S)](https://codecov.io/gh/kuberig-io/kuberig-dsl)
 
 # kuberig-dsl
 
