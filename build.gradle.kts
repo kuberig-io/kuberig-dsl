@@ -1,24 +1,27 @@
-import com.jfrog.bintray.gradle.BintrayExtension
+import de.marcphilipp.gradle.nexus.NexusPublishExtension
+import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-
-buildscript {
-    val kotlinVersion by extra("1.3.72")
-
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-    }
+plugins {
+    id("io.codearte.nexus-staging")
+    id("org.jetbrains.kotlin.jvm") apply false
+    id("org.jetbrains.dokka") apply false
+    id("de.marcphilipp.nexus-publish") apply false
 }
 
-val projectVersion = if (project.version.toString() == "unspecified") {
+val sonatypeUsername: String? by project
+val sonatypePassword: String? by project
+val projectVersion: String = if (project.version.toString() == "unspecified") {
     println("Defaulting to version 0.0.0")
     "0.0.0"
 } else {
     project.version.toString()
+}
+
+nexusStaging {
+    username = sonatypeUsername
+    password = sonatypePassword
+    repositoryDescription = "Release io.kuberig - ${rootProject.name} - $projectVersion"
 }
 
 subprojects {
@@ -27,8 +30,9 @@ subprojects {
         plugin("java")
         plugin("idea")
         plugin("org.jetbrains.kotlin.jvm")
-        plugin("com.jfrog.bintray")
         plugin("jacoco")
+        plugin("org.jetbrains.dokka")
+        plugin("de.marcphilipp.nexus-publish")
     }
 
     val subProject = this
@@ -37,14 +41,21 @@ subprojects {
     subProject.version = projectVersion
 
     repositories {
-        jcenter()
+        mavenCentral()
+        // dokka is not available on mavenCentral yet.
+        jcenter {
+            content {
+                includeGroup("org.jetbrains.dokka")
+                includeGroup("org.jetbrains") // dokka (transitive: jetbrains markdown)
+                includeGroup("org.jetbrains.kotlinx") // dokka (transitive: kotlinx-html-jvm)
+                includeGroup("com.soywiz.korlibs.korte") // dokka (transitive: korte-jvm)
+            }
+        }
     }
 
     dependencies {
         val implementation by configurations
-        val runtime by configurations
         val testImplementation by configurations
-        val testRuntimeOnly by configurations
 
         implementation(kotlin("stdlib-jdk8"))
 
@@ -53,10 +64,9 @@ subprojects {
 
         // Use the Kotlin JUnit integration.
         testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
-
     }
 
-    configure<JavaPluginConvention> {
+    configure<JavaPluginExtension> {
         sourceCompatibility = JavaVersion.VERSION_1_8
     }
     tasks.withType<KotlinCompile> {
@@ -77,40 +87,58 @@ subprojects {
     tasks.getByName("check").dependsOn(tasks.getByName("jacocoTestReport"))
 
     val sourceSets: SourceSetContainer by this
-    val sourcesJar by tasks.registering(Jar::class) {
+    val sourcesJar by tasks.creating(Jar::class) {
         archiveClassifier.set("sources")
         from(sourceSets["main"].allSource)
+    }
+
+    val javadocJar by tasks.creating(Jar::class) {
+        archiveClassifier.set("javadoc")
+        val dokkaJavadoc = subProject.tasks.getByName<DokkaTask>("dokkaJavadoc")
+        from(dokkaJavadoc.outputDirectory)
+        dependsOn(dokkaJavadoc)
     }
 
     configure<PublishingExtension> {
 
         publications {
-            register(subProject.name, MavenPublication::class) {
+            create<MavenPublication>(subProject.name + "-maven") {
                 from(components["java"])
-                artifact(sourcesJar.get())
+                artifact(sourcesJar)
+                artifact(javadocJar)
             }
         }
 
+        repositories {
+            maven {
+                name = "local"
+                // change URLs to point to your repos, e.g. http://my.org/repo
+                val releasesRepoUrl = uri("$buildDir/repos/releases")
+                val snapshotsRepoUrl = uri("$buildDir/repos/snapshots")
+
+                val urlToUse = if (projectVersion.endsWith("SNAPSHOT")) {
+                        snapshotsRepoUrl
+                } else {
+                    releasesRepoUrl
+                }
+
+                url = urlToUse
+            }
+        }
     }
 
-    val bintrayApiKey : String by project
-    val bintrayUser : String by project
+    subProject.configure<NexusPublishExtension> {
+        repositories {
+            sonatype {
+                username.set(sonatypeUsername)
+                password.set(sonatypePassword)
+            }
+        }
 
-    configure<BintrayExtension> {
-        user = bintrayUser
-        key = bintrayApiKey
-        publish = true
-
-        pkg(closureOf<BintrayExtension.PackageConfig> {
-            repo = "rigeldev-oss-maven"
-            name = "io-kuberig-" + subProject.name
-            setLicenses("Apache-2.0")
-            isPublicDownloadNumbers = true
-            websiteUrl = project.properties["websiteUrl"]!! as String
-            vcsUrl = project.properties["vcsUrl"]!! as String
-        })
-
-        setPublications(subProject.name)
+        // these are not strictly required. The default timeouts are set to 1 minute. But Sonatype can be really slow.
+        // If you get the error "java.net.SocketTimeoutException: timeout", these lines will help.
+        connectTimeout.set(java.time.Duration.ofMinutes(3))
+        clientTimeout.set(java.time.Duration.ofMinutes(3))
     }
 
     tasks.withType<Jar> {
@@ -119,6 +147,59 @@ subprojects {
                 "Implementation-Title" to project.name,
                 "Implementation-Version" to project.version
             )
+        }
+    }
+
+    if (subProject.hasProperty("signing.keyId")) {
+        apply {
+            plugin("signing")
+        }
+
+        subProject.configure<SigningExtension> {
+            subProject.extensions.getByType<PublishingExtension>().publications.all {
+                sign(this)
+
+            }
+        }
+    }
+
+    subProject.plugins.withType<MavenPublishPlugin>().all {
+        val publishing = subProject.extensions.getByType<PublishingExtension>()
+        publishing.publications.withType<MavenPublication>().all {
+            groupId = subProject.group as String
+            artifactId = subProject.name
+            version = subProject.version as String
+
+            val vcsUrl = project.properties["vcsUrl"]!! as String
+
+            pom {
+                name.set("${subProject.group}:${subProject.name}")
+                description.set("Kuberig DSL generation.")
+                url.set(vcsUrl)
+
+                licenses {
+                    license {
+                        name.set("The Apache License, Version 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0")
+                    }
+                }
+
+                developers {
+                    developer {
+                        id.set("teyckmans")
+                        name.set("Tom Eyckmans")
+                        email.set("teyckmans@gmail.com")
+                    }
+                }
+
+                val sshConnection = vcsUrl.replace("https://", "ssh://") + ".git"
+
+                scm {
+                    connection.set("scm:git:$vcsUrl")
+                    developerConnection.set("scm:git:$sshConnection")
+                    url.set(vcsUrl)
+                }
+            }
         }
     }
 }
