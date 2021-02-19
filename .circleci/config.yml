@@ -66,6 +66,8 @@ commands:
           key: v1-gradle-wrapper-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
       #
       - run: |
+          echo $M2_SIGNING_KEY | base64 -d > ~/m2_signing_key.pgp
+          export ORG_GRADLE_PROJECT_signing_secretKeyRingFile=~/m2_signing_key.pgp
           export VERSION="<< parameters.version >>"
           echo "VERSION=${VERSION}"
           ./gradlew -Pversion=$VERSION build
