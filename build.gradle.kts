@@ -125,6 +125,20 @@ subprojects {
                 url = urlToUse
             }
         }
+
+        repositories {
+            maven {
+                url = uri("https://gitlab.com/api/v4/projects/24703950/packages/maven")
+                name = "GitLab"
+                credentials(HttpHeaderCredentials::class) {
+                    name = "Job-Token"
+                    value = System.getenv("CI_JOB_TOKEN")
+                }
+                authentication {
+                    create<HttpHeaderAuthentication>("header")
+                }
+            }
+        }
     }
 
     subProject.configure<NexusPublishExtension> {

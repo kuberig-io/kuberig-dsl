@@ -1,0 +1,92 @@
+.builds:
+  only:
+    refs:
+      - branches
+
+.releases:
+  only:
+    refs:
+      - tags
+
+.pull-cache:
+  cache:
+    key: "$CI_COMMIT_REF_NAME"
+    policy: pull
+    paths:
+      - build
+      - .gradle
+
+# This is the Gradle build system for JVM applications
+# https://gradle.org/
+# https://github.com/gradle/gradle
+image: gradle:6.8.2-jdk11-hotspot
+
+stages:
+  - build
+  - test
+  - deploy
+
+# Disable the Gradle daemon for Continuous Integration servers as correctness
+# is usually a priority over speed in CI environments. Using a fresh
+# runtime for each build is more reliable since the runtime is completely
+# isolated from any previous builds.
+variables:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
+before_script:
+  - export GRADLE_USER_HOME=`pwd`/.gradle
+  - export VERSION=${CI_COMMIT_REF_SLUG}-${CI_PIPELINE_IID}
+  - echo $VERSION
+
+# Feature / Pull-Request builds
+build:
+  stage: build
+  extends: .builds
+  script: gradle -Pversion=$VERSION --build-cache assemble
+  cache:
+    key: "$CI_COMMIT_REF_NAME"
+    policy: push
+    paths:
+      - build
+      - .gradle
+
+test:
+  stage: test
+  extends:
+    - .builds
+    - .pull-cache
+  script: gradle -Pversion=$VERSION check
+
+deploy:
+  stage: deploy
+  extends:
+    - .builds
+    - .pull-cache
+  script: gradle -Pversion=$VERSION publishAllPublicationsToGitLabRepository
+
+# Tags
+build-tag:
+  stage: build
+  extends:
+    - .releases
+  script: gradle -Pversion=$CI_COMMIT_TAG --build-cache assemble
+  cache:
+    key: "$CI_COMMIT_REF_NAME"
+    policy: push
+    paths:
+      - build
+      - .gradle
+
+test-tag:
+  stage: test
+  extends:
+    - .releases
+    - .pull-cache
+  script: gradle -Pversion=$CI_COMMIT_TAG check
+
+deploy-tag:
+  stage: deploy
+  extends:
+    - .releases
+    - .pull-cache
+  script: gradle -Pversion=$CI_COMMIT_TAG publishToSonatype closeAndReleaseSonatypeStagingRepository
