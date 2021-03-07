@@ -90,6 +90,10 @@ test-tag:
     - |
       gradle -Pversion=$CI_COMMIT_TAG check
       bash <(curl -s https://codecov.io/bash)
+  artifacts:
+    when: always
+    reports:
+      junit: "**/build/test-results/test/**/TEST-*.xml"
 
 deploy-tag:
   stage: deploy
