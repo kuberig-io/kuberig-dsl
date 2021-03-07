@@ -62,7 +62,11 @@ deploy:
   extends:
     - .builds
     - .pull-cache
-  script: gradle -Pversion=$VERSION publishAllPublicationsToGitLabRepository
+  script:
+    - |
+      echo $M2_SIGNING_KEY | base64 -d > ~/m2_signing_key.pgp
+      export ORG_GRADLE_PROJECT_signing_secretKeyRingFile=~/m2_signing_key.pgp
+      gradle -Pversion=$VERSION publishAllPublicationsToGitLabRepository
 
 # Tags
 build-tag:
@@ -82,11 +86,34 @@ test-tag:
   extends:
     - .releases
     - .pull-cache
-  script: gradle -Pversion=$CI_COMMIT_TAG check
+  script:
+    - |
+      gradle -Pversion=$CI_COMMIT_TAG check
+      bash <(curl -s https://codecov.io/bash)
 
 deploy-tag:
   stage: deploy
   extends:
     - .releases
     - .pull-cache
-  script: gradle -Pversion=$CI_COMMIT_TAG publishToSonatype closeAndReleaseSonatypeStagingRepository
+  script:
+    - |
+      echo $M2_SIGNING_KEY | base64 -d > ~/m2_signing_key.pgp
+      export ORG_GRADLE_PROJECT_signing_secretKeyRingFile=~/m2_signing_key.pgp
+      GRADLE_PROPS=~/.gradle/gradle.properties
+      if test -f "$GRADLE_PROPS"; then
+        rm -rf $GRADLE_PROPS
+      fi
+      touch $GRADLE_PROPS
+      echo "gradle.publish.key=${GRADLE_PUBLISH_KEY}" >> $GRADLE_PROPS
+      echo "gradle.publish.secret=${GRADLE_PUBLISH_SECRET}" >> $GRADLE_PROPS
+      gradle -Pversion=$CI_COMMIT_TAG publishToSonatype closeAndReleaseSonatypeStagingRepository publishPlugins
+  after_script:
+    - |
+      if test -f "$ORG_GRADLE_PROJECT_signing_secretKeyRingFile"; then
+        rm -f ~/m2_signing_key.pgp
+      fi
+      GRADLE_PROPS=~/.gradle/gradle.properties
+      if test -f "$GRADLE_PROPS"; then
+        rm -rf $GRADLE_PROPS
+      fi
