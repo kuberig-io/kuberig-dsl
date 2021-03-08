@@ -9,8 +9,6 @@ plugins {
     id("de.marcphilipp.nexus-publish") apply false
 }
 
-val sonatypeUsername: String? by project
-val sonatypePassword: String? by project
 val projectVersion: String = if (project.version.toString() == "unspecified") {
     println("Defaulting to version 0.0.0")
     "0.0.0"
@@ -18,10 +16,15 @@ val projectVersion: String = if (project.version.toString() == "unspecified") {
     project.version.toString()
 }
 
-nexusStaging {
-    username = sonatypeUsername
-    password = sonatypePassword
-    repositoryDescription = "Release io.kuberig - ${rootProject.name} - $projectVersion"
+if (project.hasProperty("sonatypeUsername") && project.hasProperty("sonatypePassword")) {
+    val sonatypeUsername: String by project
+    val sonatypePassword: String by project
+
+    nexusStaging {
+        username = sonatypeUsername
+        password = sonatypePassword
+        repositoryDescription = "Release io.kuberig - ${rootProject.name} - $projectVersion"
+    }
 }
 
 subprojects {
@@ -141,18 +144,23 @@ subprojects {
         }
     }
 
-    subProject.configure<NexusPublishExtension> {
-        repositories {
-            sonatype {
-                username.set(sonatypeUsername)
-                password.set(sonatypePassword)
-            }
-        }
+    if (project.hasProperty("sonatypeUsername") && project.hasProperty("sonatypePassword")) {
+        val sonatypeUsername: String by project
+        val sonatypePassword: String by project
 
-        // these are not strictly required. The default timeouts are set to 1 minute. But Sonatype can be really slow.
-        // If you get the error "java.net.SocketTimeoutException: timeout", these lines will help.
-        connectTimeout.set(java.time.Duration.ofMinutes(3))
-        clientTimeout.set(java.time.Duration.ofMinutes(3))
+        subProject.configure<NexusPublishExtension> {
+            repositories {
+                sonatype {
+                    username.set(sonatypeUsername)
+                    password.set(sonatypePassword)
+                }
+            }
+
+            // these are not strictly required. The default timeouts are set to 1 minute. But Sonatype can be really slow.
+            // If you get the error "java.net.SocketTimeoutException: timeout", these lines will help.
+            connectTimeout.set(java.time.Duration.ofMinutes(3))
+            clientTimeout.set(java.time.Duration.ofMinutes(3))
+        }
     }
 
     tasks.withType<Jar> {
@@ -164,7 +172,7 @@ subprojects {
         }
     }
 
-    if (subProject.hasProperty("signing.keyId")) {
+    if (subProject.hasProperty("signing.keyId") && subProject.hasProperty("signing.password") && subProject.hasProperty("signing.secretKeyRngFile")) {
         apply {
             plugin("signing")
         }
