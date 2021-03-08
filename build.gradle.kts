@@ -172,7 +172,7 @@ subprojects {
         }
     }
 
-    if (subProject.hasProperty("signing.keyId") && subProject.hasProperty("signing.password") && subProject.hasProperty("signing.secretKeyRngFile")) {
+    if (subProject.hasProperty("signing.keyId") && subProject.hasProperty("signing.password") && subProject.hasProperty("signing.secretKeyRingFile")) {
         apply {
             plugin("signing")
         }
