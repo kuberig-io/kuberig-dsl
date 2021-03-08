@@ -1,9 +1,19 @@
 .builds:
+  before_script:
+    - |
+      export GRADLE_USER_HOME=`pwd`/.gradle
+      export VERSION=${CI_COMMIT_REF_SLUG}-${CI_PIPELINE_IID}
+      echo "Version: $VERSION"
   only:
     refs:
       - branches
 
 .releases:
+  before_script:
+    - |
+      export GRADLE_USER_HOME=`pwd`/.gradle
+      export VERSION=$CI_COMMIT_TAG
+      echo "Version: $VERSION"
   only:
     refs:
       - tags
@@ -32,11 +42,6 @@ stages:
 # isolated from any previous builds.
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
-
-before_script:
-  - export GRADLE_USER_HOME=`pwd`/.gradle
-  - export VERSION=${CI_COMMIT_REF_SLUG}-${CI_PIPELINE_IID}
-  - echo $VERSION
 
 # Feature / Pull-Request builds
 build:
@@ -80,7 +85,7 @@ build-tag:
   stage: build
   extends:
     - .releases
-  script: gradle -Pversion=$CI_COMMIT_TAG --build-cache assemble
+  script: gradle -Pversion=$VERSION --build-cache assemble
   cache:
     key: "$CI_COMMIT_REF_NAME"
     policy: push
@@ -95,7 +100,7 @@ test-tag:
     - .pull-cache
   script:
     - |
-      gradle -Pversion=$CI_COMMIT_TAG check
+      gradle -Pversion=$VERSION check
       bash <(curl -s https://codecov.io/bash)
   artifacts:
     when: always
@@ -109,22 +114,10 @@ deploy-tag:
     - .pull-cache
   script:
     - |
-      echo $M2_SIGNING_KEY | base64 -d > ~/m2_signing_key.pgp
-      export ORG_GRADLE_PROJECT_signing_secretKeyRingFile=~/m2_signing_key.pgp
-      GRADLE_PROPS=~/.gradle/gradle.properties
-      if test -f "$GRADLE_PROPS"; then
-        rm -rf $GRADLE_PROPS
-      fi
-      touch $GRADLE_PROPS
-      echo "gradle.publish.key=${GRADLE_PUBLISH_KEY}" >> $GRADLE_PROPS
-      echo "gradle.publish.secret=${GRADLE_PUBLISH_SECRET}" >> $GRADLE_PROPS
-      gradle -Pversion=$CI_COMMIT_TAG publishAllPublicationsToGitLabRepository publishToSonatype closeAndReleaseRepository publishPlugins
+      echo $M2_SIGNING_KEY | base64 -d > $ORG_GRADLE_PROJECT_signing_secretKeyRingFile
+      gradle -Pversion=$VERSION publishAllPublicationsToGitLabRepository publishToSonatype closeAndReleaseRepository publishPlugins
   after_script:
     - |
       if test -f "$ORG_GRADLE_PROJECT_signing_secretKeyRingFile"; then
         rm -f ~/m2_signing_key.pgp
-      fi
-      GRADLE_PROPS=~/.gradle/gradle.properties
-      if test -f "$GRADLE_PROPS"; then
-        rm -rf $GRADLE_PROPS
       fi
