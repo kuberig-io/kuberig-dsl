@@ -1,12 +1,10 @@
-import de.marcphilipp.gradle.nexus.NexusPublishExtension
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("io.codearte.nexus-staging")
     id("org.jetbrains.kotlin.jvm") apply false
     id("org.jetbrains.dokka") apply false
-    id("de.marcphilipp.nexus-publish") apply false
+    id("io.github.gradle-nexus.publish-plugin")
 }
 
 val projectVersion: String = if (project.version.toString() == "unspecified") {
@@ -16,15 +14,17 @@ val projectVersion: String = if (project.version.toString() == "unspecified") {
     project.version.toString()
 }
 
-if (project.hasProperty("sonatypeUsername") && project.hasProperty("sonatypePassword")) {
-    val sonatypeUsername: String by project
-    val sonatypePassword: String by project
+group = "io.kuberig"
+version = projectVersion
 
-    nexusStaging {
-        username = sonatypeUsername
-        password = sonatypePassword
-        repositoryDescription = "Release io.kuberig - ${rootProject.name} - $projectVersion"
+if (project.hasProperty("sonatypeUsername") && project.hasProperty("sonatypePassword")) {
+    nexusPublishing {
+        repositories {
+            sonatype()
+        }
     }
+} else {
+    println("Sonatype credentials not available, skipping nexusPublishing plugin configuration.")
 }
 
 subprojects {
@@ -35,7 +35,6 @@ subprojects {
         plugin("org.jetbrains.kotlin.jvm")
         plugin("jacoco")
         plugin("org.jetbrains.dokka")
-        plugin("de.marcphilipp.nexus-publish")
     }
 
     val subProject = this
@@ -60,7 +59,11 @@ subprojects {
         val implementation by configurations
         val testImplementation by configurations
 
-        implementation(kotlin("stdlib-jdk8"))
+        // Align versions of all Kotlin components
+        implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
+
+        // Use the Kotlin JDK 8 standard library.
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
         // Use the Kotlin test library.
         testImplementation("org.jetbrains.kotlin:kotlin-test")
@@ -141,25 +144,6 @@ subprojects {
                     create<HttpHeaderAuthentication>("header")
                 }
             }
-        }
-    }
-
-    if (project.hasProperty("sonatypeUsername") && project.hasProperty("sonatypePassword")) {
-        val sonatypeUsername: String by project
-        val sonatypePassword: String by project
-
-        subProject.configure<NexusPublishExtension> {
-            repositories {
-                sonatype {
-                    username.set(sonatypeUsername)
-                    password.set(sonatypePassword)
-                }
-            }
-
-            // these are not strictly required. The default timeouts are set to 1 minute. But Sonatype can be really slow.
-            // If you get the error "java.net.SocketTimeoutException: timeout", these lines will help.
-            connectTimeout.set(java.time.Duration.ofMinutes(3))
-            clientTimeout.set(java.time.Duration.ofMinutes(3))
         }
     }
 

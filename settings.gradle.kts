@@ -14,12 +14,8 @@ pluginManagement {
                 useModule("org.jetbrains.dokka:dokka-gradle-plugin:$dokkaVersion")
             }
 
-            if (requested.id.id == "de.marcphilipp.nexus-publish") {
-                useModule("de.marcphilipp.gradle:nexus-publish-plugin:0.4.0")
-            }
-
-            if (requested.id.id == "io.codearte.nexus-staging") {
-                useVersion("0.22.0")
+            if (requested.id.id == "io.github.gradle-nexus.publish-plugin") {
+                useModule("io.github.gradle-nexus:publish-plugin:1.0.0")
             }
         }
     }

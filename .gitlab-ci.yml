@@ -114,10 +114,9 @@ deploy-tag:
     - .pull-cache
   script:
     - |
-      echo $M2_SIGNING_KEY | base64 -d > ~/m2_signing_key.pgp
-      gradle -Pversion=$VERSION publishAllPublicationsToGitLabRepository publishToSonatype closeAndReleaseRepository publishPlugins
+      echo $M2_SIGNING_KEY | base64 -d > ./m2_signing_key.pgp
+      export ORG_GRADLE_PROJECT_signing_secretKeyRingFile=./m2_signing_key.pgp
+      gradle -Pversion=$VERSION publishAllPublicationsToGitLabRepository publishToSonatype closeAndReleaseSonatypeStagingRepository publishPlugins
   after_script:
     - |
-      if test -f "~/m2_signing_key.pgp"; then
-        rm -f ~/m2_signing_key.pgp
-      fi
+      rm -f ./m2_signing_key.pgp
