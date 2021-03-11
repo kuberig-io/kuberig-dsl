@@ -21,7 +21,7 @@ stages:
 # runtime for each build is more reliable since the runtime is completely
 # isolated from any previous builds.
 variables:
-  JVM_OPTS: "-Xmx4g -XX:MaxMetaspaceSize=512m"
+  JVM_OPTS: "-Xmx4G -XX:MaxMetaspaceSize=1G"
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
 # Feature / Pull-Request builds
