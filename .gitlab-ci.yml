@@ -41,11 +41,13 @@ test:
   script:
     - |
       gradle check
-      bash <(curl -s https://codecov.io/bash
+      bash <(curl -s https://codecov.io/bash)
   artifacts:
     when: always
     reports:
       junit: "**/build/test-results/test/**/TEST-*.xml"
+  needs:
+    - build
 
 deploy:
   stage: deploy
@@ -56,3 +58,5 @@ deploy:
       echo $M2_SIGNING_KEY | base64 -d > ~/m2_signing_key.pgp
       export ORG_GRADLE_PROJECT_signing_secretKeyRingFile=~/m2_signing_key.pgp
       gradle deploy
+  needs:
+    - test
