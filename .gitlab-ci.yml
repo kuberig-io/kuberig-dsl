@@ -41,6 +41,7 @@ test:
   script:
     - |
       gradle check
+      bash <(curl -s https://codecov.io/bash
   artifacts:
     when: always
     reports:

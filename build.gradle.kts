@@ -107,14 +107,6 @@ subprojects {
             xml.isEnabled = true
             csv.isEnabled = false
         }
-
-        if (isCiBuild()) {
-            doLast {
-                exec {
-                    commandLine("bash <(curl -s https://codecov.io/bash)".split(" "))
-                }
-            }
-        }
     }
 
     tasks.getByName("check").dependsOn(tasks.getByName("jacocoTestReport"))
