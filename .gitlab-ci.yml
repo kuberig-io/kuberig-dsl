@@ -21,7 +21,8 @@ stages:
 # runtime for each build is more reliable since the runtime is completely
 # isolated from any previous builds.
 variables:
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  JVM_OPTS: "-Xmx3g"
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
 
 # Feature / Pull-Request builds
 build:
