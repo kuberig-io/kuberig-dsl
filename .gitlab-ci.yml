@@ -22,7 +22,7 @@ stages:
 # isolated from any previous builds.
 variables:
   JVM_OPTS: "-Xmx4G -XX:MaxMetaspaceSize=1G"
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=1"
 
 # Feature / Pull-Request builds
 build:
