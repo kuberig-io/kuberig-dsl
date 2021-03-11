@@ -1,5 +1,29 @@
+
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+fun isCiBuild(): Boolean {
+    return System.getenv().getOrDefault("CI", "false") == "true"
+}
+
+fun determineVersion(): String {
+    val env = System.getenv()
+
+    return if (isCiBuild()) {
+        if (env.containsKey("CI_COMMIT_TAG")) {
+            env["CI_COMMIT_TAG"]!!
+        } else {
+            env["CI_COMMIT_REF_SLUG"]!! + "-SNAPSHOT"
+        }
+    } else {
+        if (project.version.toString() == "unspecified") {
+            println("Defaulting to version 0.0.0")
+            "0.0.0-SNAPSHOT"
+        } else {
+            project.version.toString()
+        }
+    }
+}
 
 plugins {
     id("org.jetbrains.kotlin.jvm") apply false
@@ -7,12 +31,7 @@ plugins {
     id("io.github.gradle-nexus.publish-plugin")
 }
 
-val projectVersion: String = if (project.version.toString() == "unspecified") {
-    println("Defaulting to version 0.0.0")
-    "0.0.0"
-} else {
-    project.version.toString()
-}
+val projectVersion = determineVersion()
 
 group = "io.kuberig"
 version = projectVersion
@@ -87,6 +106,14 @@ subprojects {
         reports {
             xml.isEnabled = true
             csv.isEnabled = false
+        }
+
+        if (isCiBuild()) {
+            doLast {
+                exec {
+                    commandLine("bash <(curl -s https://codecov.io/bash)".split(" "))
+                }
+            }
         }
     }
 
@@ -164,7 +191,6 @@ subprojects {
         subProject.configure<SigningExtension> {
             subProject.extensions.getByType<PublishingExtension>().publications.all {
                 sign(this)
-
             }
         }
     }
@@ -208,4 +234,29 @@ subprojects {
             }
         }
     }
+
+    val deploy by subProject.tasks.registering
+
+    afterEvaluate {
+        val env = System.getenv()
+
+        if (isCiBuild()) {
+            if (env.containsKey("CI_COMMIT_TAG")) {
+                // release build
+                deploy.get().dependsOn(
+                    subProject.tasks.getByName("publishAllPublicationsToGitLabRepository"),
+                    subProject.tasks.getByName("publishToSonatype"),
+                    subProject.tasks.getByName("closeAndReleaseSonatypeStagingRepository"),
+                    subProject.tasks.getByName("publishPlugins")
+                )
+            } else {
+                // snapshot build
+                deploy.get().dependsOn(
+                    subProject.tasks.getByName("publishAllPublicationsToGitLabRepository")
+                )
+            }
+        }
+    }
 }
+
+

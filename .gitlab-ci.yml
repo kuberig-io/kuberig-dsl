@@ -1,23 +1,3 @@
-.builds:
-  before_script:
-    - |
-      export GRADLE_USER_HOME=`pwd`/.gradle
-      export VERSION=${CI_COMMIT_REF_SLUG}-${CI_PIPELINE_IID}
-      echo "Version: $VERSION"
-  only:
-    refs:
-      - branches
-
-.releases:
-  before_script:
-    - |
-      export GRADLE_USER_HOME=`pwd`/.gradle
-      export VERSION=$CI_COMMIT_TAG
-      echo "Version: $VERSION"
-  only:
-    refs:
-      - tags
-
 .pull-cache:
   cache:
     key: "$CI_COMMIT_REF_NAME"
@@ -47,7 +27,7 @@ variables:
 build:
   stage: build
   extends: .builds
-  script: gradle -Pversion=$VERSION --build-cache assemble
+  script: gradle --build-cache assemble
   cache:
     key: "$CI_COMMIT_REF_NAME"
     policy: push
@@ -58,12 +38,10 @@ build:
 test:
   stage: test
   extends:
-    - .builds
     - .pull-cache
   script:
     - |
-      gradle -Pversion=$CI_COMMIT_TAG check
-      bash <(curl -s https://codecov.io/bash)
+      gradle check
   artifacts:
     when: always
     reports:
@@ -72,51 +50,9 @@ test:
 deploy:
   stage: deploy
   extends:
-    - .builds
     - .pull-cache
   script:
     - |
       echo $M2_SIGNING_KEY | base64 -d > ~/m2_signing_key.pgp
       export ORG_GRADLE_PROJECT_signing_secretKeyRingFile=~/m2_signing_key.pgp
-      gradle -Pversion=$VERSION publishAllPublicationsToGitLabRepository
-
-# Tags
-build-tag:
-  stage: build
-  extends:
-    - .releases
-  script: gradle -Pversion=$VERSION --build-cache assemble
-  cache:
-    key: "$CI_COMMIT_REF_NAME"
-    policy: push
-    paths:
-      - build
-      - .gradle
-
-test-tag:
-  stage: test
-  extends:
-    - .releases
-    - .pull-cache
-  script:
-    - |
-      gradle -Pversion=$VERSION check
-      bash <(curl -s https://codecov.io/bash)
-  artifacts:
-    when: always
-    reports:
-      junit: "**/build/test-results/test/**/TEST-*.xml"
-
-deploy-tag:
-  stage: deploy
-  extends:
-    - .releases
-    - .pull-cache
-  script:
-    - |
-      echo $M2_SIGNING_KEY | base64 -d > ./m2_signing_key.pgp
-      export ORG_GRADLE_PROJECT_signing_secretKeyRingFile=./m2_signing_key.pgp
-      gradle -Pversion=$VERSION publishAllPublicationsToGitLabRepository publishToSonatype closeAndReleaseSonatypeStagingRepository publishPlugins
-  after_script:
-    - |
-      rm -f ./m2_signing_key.pgp
+      gradle deploy
