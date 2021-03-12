@@ -14,10 +14,11 @@ stages:
   - deploy
 
 variables:
-  GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"'
+  GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.caching=true -Dorg.gradle.parallel=true -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"'
 
 before_script:
   - |
+    export GRADLE_USER_HOME=`pwd`/.gradle
     echo $M2_SIGNING_KEY | base64 -d > ~/m2_signing_key.pgp
     export ORG_GRADLE_PROJECT_signing_secretKeyRingFile=~/m2_signing_key.pgp
 
@@ -25,7 +26,7 @@ build:
   stage: build
   script:
     - |
-      gradle --build-cache assemble
+      gradle assemble
   cache:
     key: "$CI_COMMIT_REF_NAME"
     policy: push
