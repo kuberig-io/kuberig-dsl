@@ -6,9 +6,6 @@
       - build
       - .gradle
 
-# This is the Gradle build system for JVM applications
-# https://gradle.org/
-# https://github.com/gradle/gradle
 image: gradle:6.8.2-jdk15-hotspot
 
 stages:
@@ -16,17 +13,19 @@ stages:
   - test
   - deploy
 
-# Disable the Gradle daemon for Continuous Integration servers as correctness
-# is usually a priority over speed in CI environments. Using a fresh
-# runtime for each build is more reliable since the runtime is completely
-# isolated from any previous builds.
 variables:
   GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"'
 
-# Feature / Pull-Request builds
+before_script:
+  - |
+    echo $M2_SIGNING_KEY | base64 -d > ~/m2_signing_key.pgp
+    export ORG_GRADLE_PROJECT_signing_secretKeyRingFile=~/m2_signing_key.pgp
+
 build:
   stage: build
-  script: gradle --build-cache assemble
+  script:
+    - |
+      gradle --build-cache assemble
   cache:
     key: "$CI_COMMIT_REF_NAME"
     policy: push
@@ -55,8 +54,6 @@ deploy:
     - .pull-cache
   script:
     - |
-      echo $M2_SIGNING_KEY | base64 -d > ~/m2_signing_key.pgp
-      export ORG_GRADLE_PROJECT_signing_secretKeyRingFile=~/m2_signing_key.pgp
       gradle deploy
   needs:
     - test

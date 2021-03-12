@@ -227,15 +227,13 @@ subprojects {
         }
     }
 
-    val deploy by subProject.tasks.registering
-
-    afterEvaluate {
+    subProject.tasks.register("deploy") {
         val env = System.getenv()
 
         if (isCiBuild()) {
             if (env.containsKey("CI_COMMIT_TAG")) {
                 // release build
-                deploy.get().dependsOn(
+                dependsOn(
                     subProject.tasks.getByName("publishAllPublicationsToGitLabRepository"),
                     subProject.tasks.getByName("publishToSonatype"),
                     subProject.tasks.getByName("closeAndReleaseSonatypeStagingRepository"),
@@ -243,12 +241,13 @@ subprojects {
                 )
             } else {
                 // snapshot build
-                deploy.get().dependsOn(
+                dependsOn(
                     subProject.tasks.getByName("publishAllPublicationsToGitLabRepository")
                 )
             }
         }
     }
+
 }
 
 
