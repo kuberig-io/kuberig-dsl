@@ -18,9 +18,9 @@ variables:
 
 before_script:
   - |
-    export GRADLE_USER_HOME=`pwd`/.gradle
-    echo $M2_SIGNING_KEY | base64 -d > ~/m2_signing_key.pgp
-    export ORG_GRADLE_PROJECT_signing_secretKeyRingFile=~/m2_signing_key.pgp
+    export GRADLE_USER_HOME=`pwd`/.gitlab-gradle
+    echo $M2_SIGNING_KEY | base64 -d > ./m2_signing_key.pgp
+    export ORG_GRADLE_PROJECT_signing_secretKeyRingFile=./m2_signing_key.pgp
 
 build:
   stage: build
