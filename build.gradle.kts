@@ -259,29 +259,43 @@ subprojects {
             }
         }
     }
+}
 
-    subProject.tasks.register("deploy") {
-        if (isCiBuild()) {
-            if (isReleaseBuild()) {
-                println("Running RELEASE build, publish to GitLab, Sonatype and Gradle Plugin Portal.")
-                // release build
+tasks.register("deploy") {
+    group = "publishing"
+
+    if (isCiBuild()) {
+        if (isReleaseBuild()) {
+            println("Running RELEASE build, publish to GitLab, Sonatype and Gradle Plugin Portal.")
+            // release build
+            project.subprojects.forEach {
                 dependsOn(
-                    subProject.tasks.getByName("publishAllPublicationsToGitLabRepository"),
-                    subProject.tasks.getByName("publishToSonatype"),
-                    subProject.tasks.getByName("closeAndReleaseSonatypeStagingRepository"),
-                    subProject.tasks.getByName("publishPlugins")
+                    it.tasks.getByName("publishAllPublicationsToGitLabRepository"),
+                    it.tasks.getByName("publishToSonatype")
                 )
-            } else {
-                // snapshot build
-                println("Running SNAPSHOT build, only publishing to GitLab repository.")
+            }
 
+            dependsOn(
+                "closeAndReleaseSonatypeStagingRepository",
+                ":kuberig-dsl-generator-gradle-plugin:publishPlugins"
+            )
+        } else {
+            // snapshot build
+            println("Running SNAPSHOT build, only publishing to GitLab repository.")
+
+            project.subprojects.forEach {
                 dependsOn(
-                    subProject.tasks.getByName("publishAllPublicationsToGitLabRepository")
+                    it.tasks.getByName("publishAllPublicationsToGitLabRepository")
                 )
             }
         }
+    } else {
+        project.subprojects.forEach {
+            dependsOn(
+                it.tasks.getByName("publishAllPublicationToLocalRepository")
+            )
+        }
     }
-
 }
 
 

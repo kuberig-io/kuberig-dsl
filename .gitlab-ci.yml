@@ -67,7 +67,7 @@ tasks:
   after_script:
     - *gradle-cleanup
 
-test:
+.test:
   stage: test
   extends:
     - .pull-cache
