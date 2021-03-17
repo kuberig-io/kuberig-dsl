@@ -22,7 +22,7 @@ before_script:
     echo $M2_SIGNING_KEY | base64 -d > ./m2_signing_key.pgp
     export ORG_GRADLE_PROJECT_signing_secretKeyRingFile=./m2_signing_key.pgp
 
-build:
+.build:
   stage: build
   script:
     - |
@@ -34,7 +34,13 @@ build:
       - build
       - .gradle
 
-test:
+tasks:
+  stage: build
+  script:
+    - |
+      gradle tasks
+
+.test:
   stage: test
   extends:
     - .pull-cache
@@ -49,7 +55,7 @@ test:
   needs:
     - build
 
-deploy:
+.deploy:
   stage: deploy
   extends:
     - .pull-cache
