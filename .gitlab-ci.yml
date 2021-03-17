@@ -93,5 +93,3 @@ deploy:
     - gradle deploy
   after_script:
     - *gradle-cleanup
-  needs:
-    - test
