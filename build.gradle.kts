@@ -6,11 +6,15 @@ fun isCiBuild(): Boolean {
     return System.getenv().getOrDefault("CI", "false") == "true"
 }
 
+fun isReleaseBuild(): Boolean {
+    return isCiBuild() && System.getenv().containsKey("CI_COMMIT_TAG")
+}
+
 fun determineVersion(): String {
     val env = System.getenv()
 
     return if (isCiBuild()) {
-        if (env.containsKey("CI_COMMIT_TAG")) {
+        if (isReleaseBuild()) {
             env["CI_COMMIT_TAG"]!!
         } else {
             env["CI_COMMIT_REF_SLUG"]!! + "-SNAPSHOT"
@@ -36,6 +40,17 @@ val projectVersion = determineVersion()
 group = "io.kuberig"
 version = projectVersion
 
+if (project.hasProperty("gradle.publish.key") && project.hasProperty("gradle.publish.secret")) {
+    println("Gradle Plugin Portal credentials available, configuring Gradle Plugin Portal publishing...")
+} else {
+    println("Gradle Plugin Portal credentials NOT available, skipping Gradle Plugin Portal publishing.")
+    println("gradle.publish.key: " + project.hasProperty("gradle.publish.key"))
+    println("gradle.publish.secret: " + project.hasProperty("gradle.publish.secret"))
+    if (isReleaseBuild()) {
+        throw GradleException("Gradle Plugin Portal credentials are required for a release build!")
+    }
+}
+
 if (project.hasProperty("sonatypeUsername") && project.hasProperty("sonatypePassword")) {
     println("Sonatype credentials available, configuring nexusPublishing...")
     nexusPublishing {
@@ -47,6 +62,9 @@ if (project.hasProperty("sonatypeUsername") && project.hasProperty("sonatypePass
     println("Sonatype credentials not available, skipping nexusPublishing plugin configuration.")
     println("sonatypeUsername: " + project.hasProperty("sonatypeUsername"))
     println("sonatypePassword: " + project.hasProperty("sonatypePassword"))
+    if (isReleaseBuild()) {
+        throw GradleException("Sonatype credentials are required for a release build!")
+    }
 }
 
 subprojects {
@@ -197,6 +215,9 @@ subprojects {
         println("signing.keyId: " + subProject.hasProperty("signing.keyId"))
         println("signing.password: " + subProject.hasProperty("signing.password"))
         println("signing.secretKeyRingFile: " + subProject.hasProperty("signing.secretKeyRingFile"))
+        if (isReleaseBuild()) {
+            throw GradleException("Signing configuration is required for a release build!")
+        }
     }
 
     subProject.plugins.withType<MavenPublishPlugin>().all {
@@ -240,10 +261,8 @@ subprojects {
     }
 
     subProject.tasks.register("deploy") {
-        val env = System.getenv()
-
         if (isCiBuild()) {
-            if (env.containsKey("CI_COMMIT_TAG")) {
+            if (isReleaseBuild()) {
                 println("Running RELEASE build, publish to GitLab, Sonatype and Gradle Plugin Portal.")
                 // release build
                 dependsOn(
