@@ -28,13 +28,23 @@ fun determineVersion(): String {
 plugins {
     id("org.jetbrains.kotlin.jvm") apply false
     id("org.jetbrains.dokka") apply false
-    id("io.github.gradle-nexus.publish-plugin")
 }
 
 val projectVersion = determineVersion()
 
 group = "io.kuberig"
 version = projectVersion
+
+if (project.hasProperty("gradle.publish.key") && project.hasProperty("gradle.publish.key")) {
+    println("Gradle Plugin Portal credentials available, configuring Gradle Plugin Portal publishing...")
+    plugins {
+        id("io.github.gradle-nexus.publish-plugin")
+    }
+} else {
+    println("Gradle Plugin Portal credentials NOT available, skipping Gradle Plugin Portal publishing.")
+    println("gradle.publish.key: " + project.hasProperty("gradle.publish.key"))
+    println("gradle.publish.key: " + project.hasProperty("gradle.publish.key"))
+}
 
 if (project.hasProperty("sonatypeUsername") && project.hasProperty("sonatypePassword")) {
     println("Sonatype credentials available, configuring nexusPublishing...")
