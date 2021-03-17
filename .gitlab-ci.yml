@@ -32,14 +32,12 @@ variables:
 
 .gradle-cleanup: &gradle-cleanup
   - export GRADLE_USER_HOME=`pwd`/.gradle
-  - ls $GRADLE_USER_HOME
   - if test -f "$GRADLE_USER_HOME/gradle.properties"; then
   -   rm -rf $GRADLE_PROPS
   -   echo "gradle.properties file cleaned up"
   - else
   -   echo "no gradle.properties file found"
   - fi
-  - ls
   - if test -f "./m2_signing_key.pgp"; then
   -   rm -rf ./m2_signing_key.pgp
   -   echo "PGP signing key file cleaned up"
@@ -47,7 +45,7 @@ variables:
   -   echo "No PGP signing key file found"
   - fi
 
-.build:
+build:
   stage: build
   script:
     - *gradle-init
@@ -69,7 +67,7 @@ tasks:
   after_script:
     - *gradle-cleanup
 
-.test:
+test:
   stage: test
   extends:
     - .pull-cache
@@ -86,7 +84,7 @@ tasks:
   needs:
     - build
 
-.deploy:
+deploy:
   stage: deploy
   extends:
     - .pull-cache
