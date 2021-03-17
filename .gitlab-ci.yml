@@ -18,6 +18,7 @@ variables:
 
 .gradle-init: &gradle-init
   - export GRADLE_USER_HOME=`pwd`/.gradle
+  - mkdir -p $GRADLE_USER_HOME
   - echo $M2_SIGNING_KEY | base64 -d > ./m2_signing_key.pgp
   - export GRADLE_PROPS_FILE=$GRADLE_USER_HOME/gradle.properties
   - touch $GRADLE_PROPS_FILE
@@ -29,11 +30,31 @@ variables:
   - echo "sonatypeUsername=${SONATYPE_USERNAME}" >> $GRADLE_PROPS_FILE
   - echo "sonatypePassword=${SONATYPE_PASSWORD}" >> $GRADLE_PROPS_FILE
 
+.gradle-cleanup: &gradle-cleanup
+  - export GRADLE_USER_HOME=`pwd`/.gradle
+  - export GRADLE_PROPS_FILE=$GRADLE_USER_HOME/gradle.properties
+  - ls $GRADLE_USER_HOME
+  - if test -f "$GRADLE_PROPS"; then
+  -   rm -rf $GRADLE_PROPS
+  -   echo "gradle.properties file cleaned up"
+  - else
+  -   echo "no gradle.properties file found"
+  - fi
+  - ls
+  - if test -f "./m2_signing_key.pgp"; then
+  -   rm -rf ./m2_signing_key.pgp
+  -   echo "PGP signing key file cleaned up"
+  - else
+  -   echo "No PGP signing key file found"
+  - fi
+
 .build:
   stage: build
   script:
     - *gradle-init
     - gradle assemble
+  after_script:
+    - *gradle-cleanup
   cache:
     key: "$CI_COMMIT_REF_NAME"
     policy: push
@@ -46,6 +67,8 @@ tasks:
   script:
     - *gradle-init
     - gradle tasks
+  after_script:
+    - *gradle-cleanup
 
 .test:
   stage: test
@@ -55,6 +78,8 @@ tasks:
     - *gradle-init
     - gradle check
     - bash <(curl -s https://codecov.io/bash)
+  after_script:
+    - *gradle-cleanup
   artifacts:
     when: always
     reports:
@@ -69,5 +94,7 @@ tasks:
   script:
     - *gradle-init
     - gradle deploy
+  after_script:
+    - *gradle-cleanup
   needs:
     - test
