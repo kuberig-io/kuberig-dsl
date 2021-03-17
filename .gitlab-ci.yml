@@ -32,9 +32,8 @@ variables:
 
 .gradle-cleanup: &gradle-cleanup
   - export GRADLE_USER_HOME=`pwd`/.gradle
-  - export GRADLE_PROPS_FILE=$GRADLE_USER_HOME/gradle.properties
   - ls $GRADLE_USER_HOME
-  - if test -f "$GRADLE_PROPS"; then
+  - if test -f "$GRADLE_USER_HOME/gradle.properties"; then
   -   rm -rf $GRADLE_PROPS
   -   echo "gradle.properties file cleaned up"
   - else
