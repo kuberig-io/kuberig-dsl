@@ -37,6 +37,7 @@ group = "io.kuberig"
 version = projectVersion
 
 if (project.hasProperty("sonatypeUsername") && project.hasProperty("sonatypePassword")) {
+    println("Sonatype credentials available, configuring nexusPublishing...")
     nexusPublishing {
         repositories {
             sonatype()
@@ -175,7 +176,11 @@ subprojects {
         }
     }
 
-    if (subProject.hasProperty("signing.keyId") && subProject.hasProperty("signing.password") && subProject.hasProperty("signing.secretKeyRingFile")) {
+    if (subProject.hasProperty("signing.keyId")
+        && subProject.hasProperty("signing.password")
+        && subProject.hasProperty("signing.secretKeyRingFile")) {
+        println("Signing configuration available, configuring artifact signing...")
+
         apply {
             plugin("signing")
         }
@@ -185,6 +190,8 @@ subprojects {
                 sign(this)
             }
         }
+    } else {
+        println("Signing configuration not available, skipping artifact signing configuration.")
     }
 
     subProject.plugins.withType<MavenPublishPlugin>().all {
@@ -232,6 +239,7 @@ subprojects {
 
         if (isCiBuild()) {
             if (env.containsKey("CI_COMMIT_TAG")) {
+                println("Running RELEASE build, publish to GitLab, Sonatype and Gradle Plugin Portal.")
                 // release build
                 dependsOn(
                     subProject.tasks.getByName("publishAllPublicationsToGitLabRepository"),
@@ -241,6 +249,8 @@ subprojects {
                 )
             } else {
                 // snapshot build
+                println("Running SNAPSHOT build, only publishing to GitLab repository.")
+
                 dependsOn(
                     subProject.tasks.getByName("publishAllPublicationsToGitLabRepository")
                 )
