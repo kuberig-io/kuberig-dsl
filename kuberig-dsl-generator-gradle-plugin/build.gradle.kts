@@ -1,6 +1,16 @@
 plugins {
     `java-gradle-plugin`
-    id("com.gradle.plugin-publish") version "0.11.0"
+}
+
+if (project.hasProperty("gradle.publish.key") && project.hasProperty("gradle.publish.secret")) {
+    println("Gradle Plugin Portal credentials available, configuring Gradle Plugin Portal publishing...")
+    plugins {
+        id("com.gradle.plugin-publish") version "0.11.0"
+    }
+} else {
+    println("Gradle Plugin Portal credentials NOT available, skipping Gradle Plugin Portal publishing.")
+    println("gradle.publish.key: " + project.hasProperty("gradle.publish.key"))
+    println("gradle.publish.secret: " + project.hasProperty("gradle.publish.secret"))
 }
 
 dependencies {

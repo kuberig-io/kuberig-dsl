@@ -17,9 +17,17 @@ variables:
   GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.caching=true -Dorg.gradle.parallel=true -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"'
 
 .gradle-init: &gradle-init
-  - export GRADLE_USER_HOME=`pwd`/.gitlab-gradle
+  - export GRADLE_USER_HOME=`pwd`/.gradle
   - echo $M2_SIGNING_KEY | base64 -d > ./m2_signing_key.pgp
-  - export ORG_GRADLE_PROJECT_signing_secretKeyRingFile=./m2_signing_key.pgp
+  - export GRADLE_PROPS_FILE=$GRADLE_USER_HOME/gradle.properties
+  - touch $GRADLE_PROPS_FILE
+  - echo "gradle.publish.key=${GRADLE_PUBLISH_KEY}" >> $GRADLE_PROPS_FILE
+  - echo "gradle.publish.secret=${GRADLE_PUBLISH_SECRET}" >> $GRADLE_PROPS_FILE
+  - echo "signing.keyId=${SIGNING_KEY_ID}" >> $GRADLE_PROPS_FILE
+  - echo "signing.password=${SIGNING_PASSWORD}" >> $GRADLE_PROPS_FILE
+  - echo "signing.secretKeyRingFile=./m2_signing_key.pgp" >> $GRADLE_PROPS_FILE
+  - echo "sonatypeUsername=${SONATYPE_USERNAME}" >> $GRADLE_PROPS_FILE
+  - echo "sonatypePassword=${SONATYPE_PASSWORD}" >> $GRADLE_PROPS_FILE
 
 .build:
   stage: build
