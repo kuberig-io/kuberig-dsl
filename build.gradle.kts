@@ -45,6 +45,8 @@ if (project.hasProperty("sonatypeUsername") && project.hasProperty("sonatypePass
     }
 } else {
     println("Sonatype credentials not available, skipping nexusPublishing plugin configuration.")
+    println("sonatypeUsername: " + project.hasProperty("sonatypeUsername"))
+    println("sonatypePassword: " + project.hasProperty("sonatypePassword"))
 }
 
 subprojects {
@@ -192,6 +194,9 @@ subprojects {
         }
     } else {
         println("Signing configuration not available, skipping artifact signing configuration.")
+        println("signing.keyId: " + subProject.hasProperty("signing.keyId"))
+        println("signing.password: " + subProject.hasProperty("signing.password"))
+        println("signing.secretKeyRingFile: " + subProject.hasProperty("signing.secretKeyRingFile"))
     }
 
     subProject.plugins.withType<MavenPublishPlugin>().all {
