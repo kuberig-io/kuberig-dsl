@@ -55,7 +55,9 @@ if (project.hasProperty("sonatypeUsername") && project.hasProperty("sonatypePass
     println("Sonatype credentials available, configuring nexusPublishing...")
     nexusPublishing {
         repositories {
-            sonatype()
+            sonatype {
+                stagingProfileId.set("a75126268d08")
+            }
         }
     }
 } else {
