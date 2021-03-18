@@ -10,6 +10,10 @@ fun isReleaseBuild(): Boolean {
     return isCiBuild() && System.getenv().containsKey("CI_COMMIT_TAG")
 }
 
+fun isCiJobTokenAvailable(): Boolean {
+    return isCiBuild() && System.getenv().containsKey("CI_JOB_TOKEN")
+}
+
 fun determineVersion(): String {
     val env = System.getenv()
 
@@ -174,16 +178,18 @@ subprojects {
             }
         }
 
-        repositories {
-            maven {
-                url = uri("https://gitlab.com/api/v4/projects/24703950/packages/maven")
-                name = "GitLab"
-                credentials(HttpHeaderCredentials::class) {
-                    name = "Job-Token"
-                    value = System.getenv("CI_JOB_TOKEN")
-                }
-                authentication {
-                    create<HttpHeaderAuthentication>("header")
+        if (isCiJobTokenAvailable()) {
+            repositories {
+                maven {
+                    url = uri("https://gitlab.com/api/v4/projects/24703950/packages/maven")
+                    name = "GitLab"
+                    credentials(HttpHeaderCredentials::class) {
+                        name = "Job-Token"
+                        value = System.getenv("CI_JOB_TOKEN")
+                    }
+                    authentication {
+                        create<HttpHeaderAuthentication>("header")
+                    }
                 }
             }
         }
@@ -271,32 +277,29 @@ tasks.register("deploy") {
             println("Running RELEASE build, publish to GitLab, Sonatype and Gradle Plugin Portal.")
             // release build
             project.subprojects.forEach {
-                dependsOn(
-                    it.tasks.getByName("publishAllPublicationsToGitLabRepository"),
-                    it.tasks.getByName("publishToSonatype")
-                )
+                if (isCiJobTokenAvailable()) {
+                    dependsOn(it.tasks.getByName("publishAllPublicationsToGitLabRepository"))
+                }
+                dependsOn(it.tasks.getByName("publishAllPublicationsToLocalRepository"))
+                dependsOn(it.tasks.getByName("publishToSonatype"))
             }
 
-            dependsOn(
-                "closeAndReleaseSonatypeStagingRepository",
-                ":kuberig-dsl-generator-gradle-plugin:publishPlugins"
-            )
+            dependsOn("closeSonatypeStagingRepository")
+//            dependsOn(":kuberig-dsl-generator-gradle-plugin:publishPlugins")
         } else {
             // snapshot build
             println("Running SNAPSHOT build, only publishing to GitLab repository.")
 
+
             project.subprojects.forEach {
-                dependsOn(
-                    it.tasks.getByName("publishAllPublicationsToGitLabRepository")
-                )
+                if (isCiJobTokenAvailable()) {
+                    dependsOn(it.tasks.getByName("publishAllPublicationsToGitLabRepository"))
+                }
+                it.tasks.getByName("publishAllPublicationsToLocalRepository")
             }
         }
     } else {
-        project.subprojects.forEach {
-            dependsOn(
-                it.tasks.getByName("publishAllPublicationToLocalRepository")
-            )
-        }
+        project.subprojects.forEach { dependsOn(it.tasks.getByName("publishAllPublicationsToLocalRepository")) }
     }
 }
 
