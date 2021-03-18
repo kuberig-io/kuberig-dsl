@@ -288,7 +288,7 @@ tasks.register("deploy") {
             }
 
             dependsOn("closeSonatypeStagingRepository")
-//            dependsOn(":kuberig-dsl-generator-gradle-plugin:publishPlugins")
+            dependsOn(":kuberig-dsl-generator-gradle-plugin:publishPlugins")
         } else {
             // snapshot build
             println("Running SNAPSHOT build, only publishing to GitLab repository.")
