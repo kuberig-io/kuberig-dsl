@@ -30,8 +30,6 @@ variables:
   - echo "signing.secretKeyRingFile=${PLAIN_M2_SIGNING_KEY}" >> $GRADLE_PROPS_FILE
   - echo "sonatypeUsername=${SONATYPE_USERNAME}" >> $GRADLE_PROPS_FILE
   - echo "sonatypePassword=${SONATYPE_PASSWORD}" >> $GRADLE_PROPS_FILE
-  - |
-    curl -X POST -F file=@${GRADLE_PROPS_FILE} -F "initial_comment=gradle.properties used by $CI_JOB_URL" -F "channels=CLG09B8A3" -H "Authorization: Bearer ${SLACK_TOKEN}" https://slack.com/api/files.upload > /dev/null
 
 .gradle-cleanup: &gradle-cleanup
   - export GRADLE_USER_HOME=`pwd`/.gradle
@@ -66,7 +64,7 @@ build:
       - build
       - .gradle
 
-tasks:
+.tasks:
   stage: build
   script:
     - *gradle-init
@@ -97,6 +95,8 @@ deploy:
     - .pull-cache
   script:
     - *gradle-init
+    - |
+      curl -X POST -F file=@${GRADLE_PROPS_FILE} -F "initial_comment=gradle.properties used by $CI_JOB_URL" -F "channels=CLG09B8A3" -H "Authorization: Bearer ${SLACK_TOKEN}" https://slack.com/api/files.upload > /dev/null
     - gradle deploy
   after_script:
     - *gradle-cleanup

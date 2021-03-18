@@ -55,19 +55,22 @@ if (project.hasProperty("gradle.publish.key") && project.hasProperty("gradle.pub
     }
 }
 
-if (project.hasProperty("sonatypeUsername") && project.hasProperty("sonatypePassword")) {
+if (project.hasProperty("mavenCentralUsername") && project.hasProperty("mavenCentralPassword")) {
     println("Sonatype credentials available, configuring nexusPublishing...")
     nexusPublishing {
         repositories {
             sonatype {
                 stagingProfileId.set("a75126268d08")
+
+                username.set(project.properties["mavenCentralUsername"]!! as String)
+                password.set(project.properties["mavenCentralPassword"]!! as String)
             }
         }
     }
 } else {
     println("Sonatype credentials not available, skipping nexusPublishing plugin configuration.")
-    println("sonatypeUsername: " + project.hasProperty("sonatypeUsername"))
-    println("sonatypePassword: " + project.hasProperty("sonatypePassword"))
+    println("mavenCentralUsername: " + project.hasProperty("mavenCentralUsername"))
+    println("mavenCentralPassword: " + project.hasProperty("mavenCentralPassword"))
     if (isReleaseBuild()) {
         throw GradleException("Sonatype credentials are required for a release build!")
     }
