@@ -1,4 +1,4 @@
-export GRADLE_USER_HOME=`pwd`/.ci-gradle
+export GRADLE_USER_HOME=`pwd`/.gradle
 mkdir -p $GRADLE_USER_HOME
 export PLAIN_M2_SIGNING_KEY=${GRADLE_USER_HOME}/m2_signing_key.pgp
 rm -rf $PLAIN_M2_SIGNING_KEY
