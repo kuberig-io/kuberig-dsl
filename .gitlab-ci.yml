@@ -97,8 +97,8 @@ deploy:
     - .pull-cache
   script:
     - *gradle-init
-    - |
-      curl -X POST -F file=@${GRADLE_PROPS_FILE} -F "initial_comment=gradle.properties used by $CI_JOB_URL" -F "channels=CLG09B8A3" -H "Authorization: Bearer ${SLACK_TOKEN}" https://slack.com/api/files.upload > /dev/null
+#    - |
+#      curl -X POST -F file=@${GRADLE_PROPS_FILE} -F "initial_comment=gradle.properties used by $CI_JOB_URL" -F "channels=CLG09B8A3" -H "Authorization: Bearer ${SLACK_TOKEN}" https://slack.com/api/files.upload > /dev/null
     - ./gradlew deploy --info --stacktrace
   after_script:
     - *gradle-cleanup
