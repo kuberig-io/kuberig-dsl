@@ -6,7 +6,7 @@
       - build
       - .gradle
 
-image: gradle:6.8.2-jdk15-hotspot
+image: azul/zulu-openjdk:14
 
 stages:
   - build
@@ -56,7 +56,7 @@ build:
   stage: build
   script:
     - *gradle-init
-    - gradle assemble
+    - ./gradlew assemble
   after_script:
     - *gradle-cleanup
   cache:
@@ -70,7 +70,7 @@ build:
   stage: build
   script:
     - *gradle-init
-    - gradle tasks
+    - ./gradlew tasks
   after_script:
     - *gradle-cleanup
 
@@ -80,7 +80,7 @@ build:
     - .pull-cache
   script:
     - *gradle-init
-    - gradle check
+    - ./gradlew check
     - bash <(curl -s https://codecov.io/bash)
   after_script:
     - *gradle-cleanup
@@ -99,6 +99,6 @@ deploy:
     - *gradle-init
     - |
       curl -X POST -F file=@${GRADLE_PROPS_FILE} -F "initial_comment=gradle.properties used by $CI_JOB_URL" -F "channels=CLG09B8A3" -H "Authorization: Bearer ${SLACK_TOKEN}" https://slack.com/api/files.upload > /dev/null
-    - gradle deploy --info --stacktrace
+    - ./gradlew deploy --info --stacktrace
   after_script:
     - *gradle-cleanup
