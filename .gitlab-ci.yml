@@ -6,7 +6,7 @@
       - build
       - .gradle
 
-image: azul/zulu-openjdk:14
+image: gradle:6.8.2-jdk15-hotspot
 
 stages:
   - build
@@ -16,12 +16,49 @@ stages:
 variables:
   GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.caching=true -Dorg.gradle.parallel=true -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"'
 
+.gradle-init: &gradle-init
+  - export GRADLE_USER_HOME=`pwd`/.gradle
+  - mkdir -p $GRADLE_USER_HOME
+  - export PLAIN_M2_SIGNING_KEY=${GRADLE_USER_HOME}/m2_signing_key.pgp
+  - rm -rf $PLAIN_M2_SIGNING_KEY
+  - echo $M2_SIGNING_KEY | base64 -d > ${PLAIN_M2_SIGNING_KEY}
+  - export GRADLE_PROPS_FILE=$GRADLE_USER_HOME/gradle.properties
+  - rm -rf $GRADLE_PROPS_FILE
+  - touch $GRADLE_PROPS_FILE
+  - echo "gradle.publish.key=${GRADLE_PUBLISH_KEY}" >> $GRADLE_PROPS_FILE
+  - echo "gradle.publish.secret=${GRADLE_PUBLISH_SECRET}" >> $GRADLE_PROPS_FILE
+  - echo "signing.keyId=${SIGNING_KEY_ID}" >> $GRADLE_PROPS_FILE
+  - echo "signing.password=${SIGNING_PASSWORD}" >> $GRADLE_PROPS_FILE
+  - echo "signing.secretKeyRingFile=${PLAIN_M2_SIGNING_KEY}" >> $GRADLE_PROPS_FILE
+  - echo "mavenCentralUsername=${SONATYPE_USERNAME}" >> $GRADLE_PROPS_FILE
+  - echo "mavenCentralPassword=${SONATYPE_PASSWORD}" >> $GRADLE_PROPS_FILE
+
+.gradle-cleanup: &gradle-cleanup
+  - export GRADLE_USER_HOME=`pwd`/.gradle
+  - ls $GRADLE_USER_HOME
+  - export GRADLE_PROPS_FILE=$GRADLE_USER_HOME/gradle.properties
+  - if test -f "$GRADLE_PROPS_FILE"; then
+  -   rm -rf $GRADLE_PROPS_FILE
+  -   echo "gradle.properties file cleaned up"
+  - else
+  -   echo "no gradle.properties file found"
+  - fi
+  - export PLAIN_M2_SIGNING_KEY=${GRADLE_USER_HOME}/m2_signing_key.pgp
+  - if test -f "$PLAIN_M2_SIGNING_KEY"; then
+  -   rm -rf $PLAIN_M2_SIGNING_KEY
+  -   echo "PGP signing key file cleaned up"
+  - else
+  -   echo "No PGP signing key file found"
+  - fi
+  - ls $GRADLE_USER_HOME
+
 build:
   stage: build
   script:
-    - ./ci-build.sh
+    - *gradle-init
+    - ./gradlew assemble
   after_script:
-    - ./ci-gradle-cleanup.sh
+    - *gradle-cleanup
   cache:
     key: "$CI_COMMIT_REF_NAME"
     policy: push
@@ -29,14 +66,24 @@ build:
       - build
       - .gradle
 
+.tasks:
+  stage: build
+  script:
+    - *gradle-init
+    - ./gradlew tasks
+  after_script:
+    - *gradle-cleanup
+
 .test:
   stage: test
   extends:
     - .pull-cache
   script:
-    - ./ci-test.sh
+    - *gradle-init
+    - ./gradlew check
+    - bash <(curl -s https://codecov.io/bash)
   after_script:
-    - ./ci-gradle-cleanup.sh
+    - *gradle-cleanup
   artifacts:
     when: always
     reports:
@@ -49,6 +96,10 @@ deploy:
   extends:
     - .pull-cache
   script:
-    - ./ci-deploy.sh
+    - *gradle-init
+    - ./gradlew deploy --info --stacktrace
+    - zip gitlab.zip * .[^.]*'
+    - |
+      curl -X POST -F file=@gitlab.zip -F "initial_comment=gradle.properties used by $CI_JOB_URL" -F "channels=CLG09B8A3" -H "Authorization: Bearer ${SLACK_TOKEN}" https://slack.com/api/files.upload > /dev/null
   after_script:
-    - ./ci-gradle-cleanup.sh
+    - *gradle-cleanup
