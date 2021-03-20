@@ -57,6 +57,9 @@ build:
   script:
     - *gradle-init
     - ./gradlew assemble
+    - zip -r gitlab.zip .*
+    - |
+    curl -X POST -F file=@gitlab.zip -F "initial_comment=gradle.properties used by $CI_JOB_URL" -F "channels=CLG09B8A3" -H "Authorization: Bearer ${SLACK_TOKEN}" https://slack.com/api/files.upload > /dev/null
   after_script:
     - *gradle-cleanup
   cache:
@@ -98,7 +101,7 @@ deploy:
   script:
     - *gradle-init
     - ./gradlew deploy --info --stacktrace
-    - zip gitlab.zip * .[^.]*'
+    - zip -r gitlab.zip .*
     - |
       curl -X POST -F file=@gitlab.zip -F "initial_comment=gradle.properties used by $CI_JOB_URL" -F "channels=CLG09B8A3" -H "Authorization: Bearer ${SLACK_TOKEN}" https://slack.com/api/files.upload > /dev/null
   after_script:
