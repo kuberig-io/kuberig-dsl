@@ -7,7 +7,7 @@ fun isCiBuild(): Boolean {
 }
 
 fun isReleaseBuild(): Boolean {
-    return isCiBuild() && System.getenv().containsKey("CI_COMMIT_TAG")
+    return isCiBuild() && System.getenv().containsKey("GITHUB_REF")
 }
 
 fun isCiJobTokenAvailable(): Boolean {
@@ -19,9 +19,9 @@ fun determineVersion(): String {
 
     return if (isCiBuild()) {
         if (isReleaseBuild()) {
-            env["CI_COMMIT_TAG"]!!
+            env["GITHUB_REF"]!!
         } else {
-            env["CI_COMMIT_REF_SLUG"]!! + "-SNAPSHOT"
+            env["GITHUB_REF"]!! + "-SNAPSHOT"
         }
     } else {
         if (project.version.toString() == "unspecified") {
