@@ -1,0 +1,19 @@
+name: GitHub CI
+
+on: [push]
+
+jobs:
+  ci:
+    runs-on: gradle:6.8.3-jdk15-hotspot
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: build
+        run: |
+          ./ci-build.sh
+      - name: test
+        run: |
+          ./ci-test.sh
+      - name: deploy
+        run: |
+          ./ci-deploy.sh
