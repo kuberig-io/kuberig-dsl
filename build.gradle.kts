@@ -62,9 +62,6 @@ if (project.hasProperty("gradle.publish.key") && project.hasProperty("gradle.pub
     println("Gradle Plugin Portal credentials NOT available, skipping Gradle Plugin Portal publishing.")
     println("gradle.publish.key: " + project.hasProperty("gradle.publish.key"))
     println("gradle.publish.secret: " + project.hasProperty("gradle.publish.secret"))
-    if (isReleaseBuild()) {
-        throw GradleException("Gradle Plugin Portal credentials are required for a release build!")
-    }
 }
 
 if (project.hasProperty("mavenCentralUsername") && project.hasProperty("mavenCentralPassword")) {
@@ -83,9 +80,6 @@ if (project.hasProperty("mavenCentralUsername") && project.hasProperty("mavenCen
     println("Sonatype credentials not available, skipping nexusPublishing plugin configuration.")
     println("mavenCentralUsername: " + project.hasProperty("mavenCentralUsername"))
     println("mavenCentralPassword: " + project.hasProperty("mavenCentralPassword"))
-    if (isReleaseBuild()) {
-        throw GradleException("Sonatype credentials are required for a release build!")
-    }
 }
 
 subprojects {
@@ -238,9 +232,6 @@ subprojects {
         println("signing.keyId: " + subProject.hasProperty("signing.keyId"))
         println("signing.password: " + subProject.hasProperty("signing.password"))
         println("signing.secretKeyRingFile: " + subProject.hasProperty("signing.secretKeyRingFile"))
-        if (isReleaseBuild()) {
-            throw GradleException("Signing configuration is required for a release build!")
-        }
     }
 
     subProject.plugins.withType<MavenPublishPlugin>().all {
@@ -322,7 +313,7 @@ tasks.register("generateSettings") {
     group = "other"
     description = "write gradle.properties file applying escapes where needed and write in correct encoding."
 
-    val propsFile = File(System.getenv("GRADLE_USER_HOME"), "gradle.properties")
+    val propsFile = File(System.getenv("GRADLE_PROPS_FILE")!!)
 
     val props = Properties()
     addPropIfAvailable(props, "GRADLE_PUBLISH_KEY", "gradle.publish.key")
