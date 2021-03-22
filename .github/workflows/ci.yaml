@@ -4,10 +4,14 @@ on: [push]
 
 jobs:
   ci:
-    runs-on: gradle:6.8.3-jdk15-hotspot
+    runs-on: ubuntu-latest
     steps:
       - name: checkout
         uses: actions/checkout@v2
+      - name: Install Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
       - name: build
         run: |
           ./ci-build.sh
