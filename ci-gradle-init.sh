@@ -13,4 +13,4 @@ echo "signing.password=${SIGNING_PASSWORD}" >> $GRADLE_PROPS_FILE
 echo "signing.secretKeyRingFile=${PLAIN_M2_SIGNING_KEY}" >> $GRADLE_PROPS_FILE
 echo "mavenCentralUsername=${SONATYPE_USERNAME}" >> $GRADLE_PROPS_FILE
 echo "mavenCentralPassword=${SONATYPE_PASSWORD}" >> $GRADLE_PROPS_FILE
-export GRADLE_OPTS='-Dorg.gradle.daemon=false -Dorg.gradle.caching=true -Dorg.gradle.parallel=true -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"'
+export GRADLE_OPTS='-Dorg.gradle.daemon=false -Dorg.gradle.caching=true -Dorg.gradle.parallel=true'
