@@ -1,13 +1,14 @@
 
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.util.*
 
 fun isCiBuild(): Boolean {
     return System.getenv().getOrDefault("CI", "false") == "true"
 }
 
 fun isReleaseBuild(): Boolean {
-    return isCiBuild() && System.getenv().containsKey("GITHUB_REF")
+    return isCiBuild() && System.getenv().containsKey("CI_COMMIT_TAG")
 }
 
 fun isCiJobTokenAvailable(): Boolean {
@@ -19,9 +20,9 @@ fun determineVersion(): String {
 
     return if (isCiBuild()) {
         if (isReleaseBuild()) {
-            env["GITHUB_REF"]!!
+            env["CI_COMMIT_TAG"]!!
         } else {
-            env["GITHUB_REF"]!! + "-SNAPSHOT"
+            env["CI_COMMIT_REF_SLUG"]!! + "-SNAPSHOT"
         }
     } else {
         if (project.version.toString() == "unspecified") {
@@ -30,6 +31,17 @@ fun determineVersion(): String {
         } else {
             project.version.toString()
         }
+    }
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.slack.api:bolt:1.1.+")
+        classpath("com.slack.api:bolt-servlet:1.1.+")
+        classpath("com.slack.api:bolt-jetty:1.1.+")
     }
 }
 
@@ -288,7 +300,7 @@ tasks.register("deploy") {
             }
 
             dependsOn("closeSonatypeStagingRepository")
-            dependsOn(":kuberig-dsl-generator-gradle-plugin:publishPlugins")
+            //dependsOn(":kuberig-dsl-generator-gradle-plugin:publishPlugins")
         } else {
             // snapshot build
             println("Running SNAPSHOT build, only publishing to GitLab repository.")
@@ -306,4 +318,36 @@ tasks.register("deploy") {
     }
 }
 
+tasks.register("generateSettings") {
+    group = "other"
+    description = "write gradle.properties file applying escapes where needed and write in correct encoding."
 
+    val propsFile = File(System.getenv("GRADLE_USER_HOME"), "gradle.properties")
+
+    val props = Properties()
+    addPropIfAvailable(props, "GRADLE_PUBLISH_KEY", "gradle.publish.key")
+    addPropIfAvailable(props, "GRADLE_PUBLISH_SECRET", "gradle.publish.secret")
+    addPropIfAvailable(props, "SIGNING_KEY_ID", "signing.keyId")
+    addPropIfAvailable(props, "SIGNING_PASSWORD", "signing.password")
+    addPropIfAvailable(props, "PLAIN_M2_SIGNING_KEY", "signing.secretKeyRingFile")
+    addPropIfAvailable(props, "SONATYPE_USERNAME", "mavenCentralUsername")
+    addPropIfAvailable(props, "SONATYPE_PASSWORD", "mavenCentralPassword")
+
+    propsFile.outputStream().use {
+        props.store(it, null)
+    }
+}
+
+fun addPropIfAvailable(props: Properties, envVarName: String, propertyKey: String) {
+    val env = System.getenv()
+
+    if (env.containsKey(envVarName)) {
+        val rawValue = env[envVarName]!!
+        val cleanedValue = if (rawValue.startsWith("\"") && rawValue.endsWith("\"")) {
+            rawValue.substring(1, rawValue.length - 1)
+        } else {
+            rawValue
+        }
+        props.setProperty(propertyKey, cleanedValue)
+    }
+}
