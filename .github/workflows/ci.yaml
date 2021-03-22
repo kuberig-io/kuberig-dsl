@@ -15,9 +15,9 @@ jobs:
       - name: build
         run: |
           ./ci-build.sh
-      - name: test
-        run: |
-          ./ci-test.sh
+#      - name: test
+#        run: |
+#          ./ci-test.sh
       - name: deploy
         run: |
           ./ci-deploy.sh
