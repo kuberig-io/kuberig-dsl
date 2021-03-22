@@ -13,9 +13,6 @@ stages:
   - test
   - deploy
 
-variables:
-  GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.caching=true -Dorg.gradle.parallel=true -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"'
-
 build:
   stage: build
   script:

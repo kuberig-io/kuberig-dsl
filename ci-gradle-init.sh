@@ -4,4 +4,4 @@ export PLAIN_M2_SIGNING_KEY=${GRADLE_USER_HOME}/m2_signing_key.pgp
 rm -rf $PLAIN_M2_SIGNING_KEY
 echo $M2_SIGNING_KEY | base64 -d > ${PLAIN_M2_SIGNING_KEY}
 ./gradlew generateSettings
-export GRADLE_OPTS='-Dorg.gradle.daemon=false -Dorg.gradle.caching=true -Dorg.gradle.parallel=true'
+export GRADLE_OPTS='-Dorg.gradle.daemon=false -Dorg.gradle.caching=true -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"'
