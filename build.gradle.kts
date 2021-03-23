@@ -1,7 +1,6 @@
 
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.util.*
 
 fun isCiBuild(): Boolean {
     return System.getenv().getOrDefault("CI", "false") == "true"
@@ -17,6 +16,14 @@ fun isCiJobTokenAvailable(): Boolean {
 
 fun determineVersion(): String {
     val env = System.getenv()
+
+    System.getProperties().setProperty("gradle.publish.key", env["GRADLE_PUBLISH_KEY"]!!)
+    System.getProperties().setProperty("gradle.publish.secret", env["GRADLE_PUBLISH_SECRET"]!!)
+    System.getProperties().setProperty("signing.keyId", env["SIGNING_KEY_ID"]!!)
+    System.getProperties().setProperty("signing.password", env["SIGNING_PASSWORD"]!!)
+    System.getProperties().setProperty("signing.secretKeyRingFile", env["PLAIN_M2_SIGNING_KEY"]!!)
+    System.getProperties().setProperty("sonatypeUsername", env["SONATYPE_USERNAME"]!!)
+    System.getProperties().setProperty("sonatypePassword", env["SONATYPE_PASSWORD"]!!)
 
     return if (isCiBuild()) {
         if (isReleaseBuild()) {
@@ -306,41 +313,5 @@ tasks.register("deploy") {
         }
     } else {
         project.subprojects.forEach { dependsOn(it.tasks.getByName("publishAllPublicationsToLocalRepository")) }
-    }
-}
-
-tasks.register("generateSettings") {
-    group = "other"
-    description = "write gradle.properties file applying escapes where needed and write in correct encoding."
-
-    val propsFile = File(System.getenv("GRADLE_PROPS_FILE")!!)
-
-    val props = Properties()
-    addPropIfAvailable(props, "GRADLE_PUBLISH_KEY", "gradle.publish.key")
-    addPropIfAvailable(props, "GRADLE_PUBLISH_SECRET", "gradle.publish.secret")
-    addPropIfAvailable(props, "SIGNING_KEY_ID", "signing.keyId")
-    addPropIfAvailable(props, "SIGNING_PASSWORD", "signing.password")
-    addPropIfAvailable(props, "PLAIN_M2_SIGNING_KEY", "signing.secretKeyRingFile")
-    addPropIfAvailable(props, "SONATYPE_USERNAME", "mavenCentralUsername")
-    addPropIfAvailable(props, "SONATYPE_PASSWORD", "mavenCentralPassword")
-
-    propsFile.outputStream().use {
-        props.store(it, null)
-    }
-
-    outputs.upToDateWhen { false }
-}
-
-fun addPropIfAvailable(props: Properties, envVarName: String, propertyKey: String) {
-    val env = System.getenv()
-
-    if (env.containsKey(envVarName)) {
-        val rawValue = env[envVarName]!!
-        val cleanedValue = if (rawValue.startsWith("\"") && rawValue.endsWith("\"")) {
-            rawValue.substring(1, rawValue.length - 1)
-        } else {
-            rawValue
-        }
-        props.setProperty(propertyKey, cleanedValue)
     }
 }

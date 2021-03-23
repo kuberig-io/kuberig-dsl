@@ -1,7 +1,7 @@
-.pull-cache:
+.cache:
   cache:
-    key: "$CI_COMMIT_REF_NAME"
-    policy: pull
+    key: ${CI_COMMIT_REF_SLUG}
+    policy: pull-push
     paths:
       - build
       - .gradle
@@ -15,21 +15,17 @@ stages:
 
 build:
   stage: build
+  extends:
+    - .cache
   script:
     - ./ci-build.sh
   after_script:
     - ./ci-gradle-cleanup.sh
-  cache:
-    key: "$CI_COMMIT_REF_NAME"
-    policy: push
-    paths:
-      - build
-      - .gradle
 
 .test:
   stage: test
   extends:
-    - .pull-cache
+    - .cache
   script:
     - ./ci-test.sh
   after_script:
@@ -44,7 +40,7 @@ build:
 deploy:
   stage: deploy
   extends:
-    - .pull-cache
+    - .cache
   script:
     - ./ci-deploy.sh
   after_script:
