@@ -1,4 +1,4 @@
-image: azul/zulu-openjdk:14
+image: gradle:6.8.3-jdk15-hotspot
 
 stages:
   - build
