@@ -328,7 +328,7 @@ tasks.register("generateSettings") {
         props.store(it, null)
     }
 
-    outputs.file(propsFile)
+    outputs.upToDateWhen { false }
 }
 
 fun addPropIfAvailable(props: Properties, envVarName: String, propertyKey: String) {
