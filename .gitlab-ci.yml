@@ -18,7 +18,7 @@ build:
   extends:
     - .cache
   script:
-    - ./ci-build.sh
+    - ./ci-gradle.sh assemble
   after_script:
     - ./ci-gradle-cleanup.sh
 
@@ -27,7 +27,8 @@ build:
   extends:
     - .cache
   script:
-    - ./ci-test.sh
+    - ./ci-gradle.sh test
+    - bash <(curl -s https://codecov.io/bash)
   after_script:
     - ./ci-gradle-cleanup.sh
   artifacts:
@@ -42,6 +43,6 @@ deploy:
   extends:
     - .cache
   script:
-    - ./ci-deploy.sh
+    - ./ci-gradle.sh deploy -x test
   after_script:
     - ./ci-gradle-cleanup.sh

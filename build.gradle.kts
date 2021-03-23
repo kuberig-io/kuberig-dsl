@@ -61,19 +61,25 @@ buildscript {
     }
 }
 
+fun requireProperty(propertyName: String) {
+    check(project.hasProperty(propertyName)) { "$propertyName property missing." }
+}
+
 plugins {
     id("org.jetbrains.kotlin.jvm") apply false
     id("org.jetbrains.dokka") apply false
     id("io.github.gradle-nexus.publish-plugin")
 }
 
-check(project.hasProperty("sonatypeUsername")) { "sonatypeUsername property missing."}
-check(project.hasProperty("sonatypePassword")) { "sonatypePassword property missing."}
-check(project.hasProperty("gradle.publish.key")) { "gradle.publish.key property missing."}
-check(project.hasProperty("gradle.publish.secret")) { "gradle.publish.secret property missing."}
-check(project.hasProperty("signing.keyId")) { "signing.keyId property missing." }
-check(project.hasProperty("signing.password")) { "signing.password property missing." }
-check(project.hasProperty("signing.secretKeyRingFile")) { "signing.secretKeyRingFile property missing." }
+if (isCiBuild()) {
+    requireProperty("sonatypeUsername")
+    requireProperty("sonatypePassword")
+    requireProperty("gradle.publish.key")
+    requireProperty("gradle.publish.secret")
+    requireProperty("signing.keyId")
+    requireProperty("signing.password")
+    requireProperty("signing.secretKeyRingFile")
+}
 
 val projectVersion = determineVersion()
 
@@ -96,6 +102,7 @@ subprojects {
         plugin("org.jetbrains.kotlin.jvm")
         plugin("jacoco")
         plugin("org.jetbrains.dokka")
+        plugin("signing")
     }
 
     val subProject = this
@@ -219,25 +226,10 @@ subprojects {
         }
     }
 
-    if (subProject.hasProperty("signing.keyId")
-        && subProject.hasProperty("signing.password")
-        && subProject.hasProperty("signing.secretKeyRingFile")) {
-        println("Signing configuration available, configuring artifact signing...")
-
-        apply {
-            plugin("signing")
+    subProject.configure<SigningExtension> {
+        subProject.extensions.getByType<PublishingExtension>().publications.all {
+            sign(this)
         }
-
-        subProject.configure<SigningExtension> {
-            subProject.extensions.getByType<PublishingExtension>().publications.all {
-                sign(this)
-            }
-        }
-    } else {
-        println("Signing configuration not available, skipping artifact signing configuration.")
-        println("signing.keyId: " + subProject.hasProperty("signing.keyId"))
-        println("signing.password: " + subProject.hasProperty("signing.password"))
-        println("signing.secretKeyRingFile: " + subProject.hasProperty("signing.secretKeyRingFile"))
     }
 
     subProject.plugins.withType<MavenPublishPlugin>().all {
