@@ -37,3 +37,10 @@ pluginManagement {
 include ("kuberig-dsl-generator")
 include ("kuberig-dsl-base")
 include ("kuberig-dsl-generator-gradle-plugin")
+
+
+buildCache {
+    remote<HttpBuildCache> {
+        url = uri("http://build-cache.rigel.dev:5071/cache/")
+    }
+}

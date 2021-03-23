@@ -1,5 +1,4 @@
 export GRADLE_USER_HOME=`pwd`/.gradle
-ls $GRADLE_USER_HOME
 export GRADLE_PROPS_FILE=$GRADLE_USER_HOME/gradle.properties
 if test -f "$GRADLE_PROPS_FILE"; then
   rm -rf $GRADLE_PROPS_FILE
@@ -14,4 +13,3 @@ if test -f "$PLAIN_M2_SIGNING_KEY"; then
 else
   echo "No PGP signing key file found"
 fi
-ls $GRADLE_USER_HOME
