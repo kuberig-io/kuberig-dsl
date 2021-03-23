@@ -14,16 +14,25 @@ fun isCiJobTokenAvailable(): Boolean {
     return isCiBuild() && System.getenv().containsKey("CI_JOB_TOKEN")
 }
 
-fun determineVersion(): String {
+fun setProperty(propertyName: String, envVarName: String) {
     val env = System.getenv()
 
-    System.getProperties().setProperty("gradle.publish.key", env["GRADLE_PUBLISH_KEY"]!!)
-    System.getProperties().setProperty("gradle.publish.secret", env["GRADLE_PUBLISH_SECRET"]!!)
-    System.getProperties().setProperty("signing.keyId", env["SIGNING_KEY_ID"]!!)
-    System.getProperties().setProperty("signing.password", env["SIGNING_PASSWORD"]!!)
-    System.getProperties().setProperty("signing.secretKeyRingFile", env["PLAIN_M2_SIGNING_KEY"]!!)
-    System.getProperties().setProperty("sonatypeUsername", env["SONATYPE_USERNAME"]!!)
-    System.getProperties().setProperty("sonatypePassword", env["SONATYPE_PASSWORD"]!!)
+    if (env.containsKey(envVarName)) {
+        val envVarValue = env[envVarName]!!
+        System.setProperty(propertyName, envVarValue)
+        try {
+            project.rootProject.setProperty(propertyName, envVarValue)
+        }
+        catch (e: Exception) {
+            logger.error("Failed to set value found for $propertyName using environment variable $envVarName", e)
+        }
+    } else {
+        logger.error("No value found for $propertyName using environment variable $envVarName")
+    }
+}
+
+fun determineVersion(): String {
+    val env = System.getenv()
 
     return if (isCiBuild()) {
         if (isReleaseBuild()) {
@@ -58,35 +67,25 @@ plugins {
     id("io.github.gradle-nexus.publish-plugin")
 }
 
+check(project.hasProperty("sonatypeUsername")) { "sonatypeUsername property missing."}
+check(project.hasProperty("sonatypePassword")) { "sonatypePassword property missing."}
+check(project.hasProperty("gradle.publish.key")) { "gradle.publish.key property missing."}
+check(project.hasProperty("gradle.publish.secret")) { "gradle.publish.secret property missing."}
+check(project.hasProperty("signing.keyId")) { "signing.keyId property missing." }
+check(project.hasProperty("signing.password")) { "signing.password property missing." }
+check(project.hasProperty("signing.secretKeyRingFile")) { "signing.secretKeyRingFile property missing." }
+
 val projectVersion = determineVersion()
 
 group = "io.kuberig"
 version = projectVersion
 
-if (project.hasProperty("gradle.publish.key") && project.hasProperty("gradle.publish.secret")) {
-    println("Gradle Plugin Portal credentials available, configuring Gradle Plugin Portal publishing...")
-} else {
-    println("Gradle Plugin Portal credentials NOT available, skipping Gradle Plugin Portal publishing.")
-    println("gradle.publish.key: " + project.hasProperty("gradle.publish.key"))
-    println("gradle.publish.secret: " + project.hasProperty("gradle.publish.secret"))
-}
-
-if (project.hasProperty("mavenCentralUsername") && project.hasProperty("mavenCentralPassword")) {
-    println("Sonatype credentials available, configuring nexusPublishing...")
-    nexusPublishing {
-        repositories {
-            sonatype {
-                stagingProfileId.set("a75126268d08")
-
-                username.set(project.properties["mavenCentralUsername"]!! as String)
-                password.set(project.properties["mavenCentralPassword"]!! as String)
-            }
+nexusPublishing {
+    repositories {
+        sonatype {
+            stagingProfileId.set("a75126268d08")
         }
     }
-} else {
-    println("Sonatype credentials not available, skipping nexusPublishing plugin configuration.")
-    println("mavenCentralUsername: " + project.hasProperty("mavenCentralUsername"))
-    println("mavenCentralPassword: " + project.hasProperty("mavenCentralPassword"))
 }
 
 subprojects {
