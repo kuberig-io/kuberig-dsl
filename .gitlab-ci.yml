@@ -1,11 +1,3 @@
-.cache:
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}
-    policy: pull-push
-    paths:
-      - build
-      - .gradle
-
 image: azul/zulu-openjdk:14
 
 stages:
@@ -15,8 +7,6 @@ stages:
 
 build:
   stage: build
-  extends:
-    - .cache
   script:
     - ./ci-gradle.sh assemble
   after_script:
@@ -24,8 +14,6 @@ build:
 
 .test:
   stage: test
-  extends:
-    - .cache
   script:
     - ./ci-gradle.sh test
     - bash <(curl -s https://codecov.io/bash)
@@ -40,8 +28,6 @@ build:
 
 deploy:
   stage: deploy
-  extends:
-    - .cache
   script:
     - ./ci-gradle.sh deploy -x test
   after_script:
