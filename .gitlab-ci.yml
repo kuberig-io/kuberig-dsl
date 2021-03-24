@@ -1,3 +1,11 @@
+.cache:
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    policy: pull-push
+    paths:
+      - build
+      - .gradle
+
 image: gradle:6.8.3-jdk15-hotspot
 
 stages:
@@ -5,8 +13,10 @@ stages:
   - test
   - deploy
 
-build:
+.build:
   stage: build
+  extends:
+    - .cache
   script:
     - ./ci-gradle.sh assemble
   after_script:
@@ -14,6 +24,8 @@ build:
 
 .test:
   stage: test
+  extends:
+    - .cache
   script:
     - ./ci-gradle.sh test
     - bash <(curl -s https://codecov.io/bash)
@@ -28,7 +40,9 @@ build:
 
 deploy:
   stage: deploy
+  extends:
+    - .cache
   script:
-    - ./ci-gradle.sh deploy -x test
+    - ./ci-gradle.sh createStagingRepo
   after_script:
     - ./ci-gradle-cleanup.sh

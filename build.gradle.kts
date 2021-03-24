@@ -50,17 +50,6 @@ fun determineVersion(): String {
     }
 }
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath("com.slack.api:bolt:1.1.+")
-        classpath("com.slack.api:bolt-servlet:1.1.+")
-        classpath("com.slack.api:bolt-jetty:1.1.+")
-    }
-}
-
 fun requireProperty(propertyName: String) {
     check(project.hasProperty(propertyName)) { "$propertyName property missing." }
 }
@@ -306,3 +295,5 @@ tasks.register("deploy") {
         project.subprojects.forEach { dependsOn(it.tasks.getByName("publishAllPublicationsToLocalRepository")) }
     }
 }
+
+tasks.register<manual.StagingRepoCreationTask>("createStagingRepo")
