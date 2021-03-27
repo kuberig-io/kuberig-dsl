@@ -13,7 +13,7 @@ stages:
   - test
   - deploy
 
-.build:
+build:
   stage: build
   extends:
     - .cache
@@ -22,7 +22,7 @@ stages:
   after_script:
     - ./ci-gradle-cleanup.sh
 
-.test:
+test:
   stage: test
   extends:
     - .cache
