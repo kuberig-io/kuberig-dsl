@@ -21,16 +21,17 @@ open class MavenCentralPublishPlugin : Plugin<Project> {
             group = "maven central"
         }
 
-        closeStagingRepoTask.apply {
-            mustRunAfter(publishToMavenCentralTask)
-        }
-        releaseStagingRepoTask.apply {
-            mustRunAfter(publishToMavenCentralTask)
-        }
+
 
         project.afterEvaluate {
-
             if (!project.version.toString().endsWith("SNAPSHOT")) {
+                closeStagingRepoTask.apply {
+                    mustRunAfter(publishToMavenCentralTask)
+                }
+                releaseStagingRepoTask.apply {
+                    mustRunAfter(publishToMavenCentralTask)
+                }
+
                 subprojects {
                     val subProject = this
 
