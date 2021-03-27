@@ -18,16 +18,7 @@ build:
   extends:
     - .cache
   script:
-    - ./ci-gradle.sh assemble
-  after_script:
-    - ./ci-gradle-cleanup.sh
-
-test:
-  stage: test
-  extends:
-    - .cache
-  script:
-    - ./ci-gradle.sh test
+    - ./ci-gradle.sh version build
     - bash <(curl -s https://codecov.io/bash)
   after_script:
     - ./ci-gradle-cleanup.sh
@@ -35,14 +26,12 @@ test:
     when: always
     reports:
       junit: "**/build/test-results/test/**/TEST-*.xml"
-  needs:
-    - build
 
 deploy:
   stage: deploy
   extends:
     - .cache
   script:
-    - ./ci-gradle.sh version deploy closeStagingRepo
+    - ./ci-gradle.sh version deploy
   after_script:
     - ./ci-gradle-cleanup.sh

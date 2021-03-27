@@ -8,23 +8,26 @@ import org.gradle.kotlin.dsl.getByType
 @Suppress("UnstableApiUsage")
 open class MavenCentralPublishPlugin : Plugin<Project> {
 
-    override fun apply(project: Project) {
-        require(project == project.rootProject) {
+    override fun apply(rootProject: Project) {
+        require(rootProject == rootProject.rootProject) {
             "Plugin must be applied to the root project!!"
         }
 
-        val createStagingRepoTask = project.tasks.create("createStagingRepo", StagingRepoCreationTask::class.java)
-        val closeStagingRepoTask = project.tasks.create("closeStagingRepo", StagingRepoCloseTask::class.java)
-        val releaseStagingRepoTask = project.tasks.create("releaseStagingRepo", ReleaseStagingRepoTask::class.java)
+        rootProject.tasks.register("createStagingRepo", StagingRepoCreationTask::class.java)
+        rootProject.tasks.register("closeStagingRepo", StagingRepoCloseTask::class.java)
+        rootProject.tasks.register("releaseStagingRepo", ReleaseStagingRepoTask::class.java)
 
-        val publishToMavenCentralTask = project.tasks.create("publishToMavenCentral") {
+        rootProject.tasks.register("publishToMavenCentral") {
             group = "maven central"
         }
 
+        rootProject.afterEvaluate {
+            if (!rootProject.version.toString().endsWith("SNAPSHOT")) {
+                val createStagingRepoTask = rootProject.tasks.getByName("createStagingRepo")
+                val closeStagingRepoTask = rootProject.tasks.getByName("closeStagingRepo")
+                val releaseStagingRepoTask = rootProject.tasks.getByName("releaseStagingRepo")
+                val publishToMavenCentralTask = rootProject.tasks.getByName("publishToMavenCentral")
 
-
-        project.afterEvaluate {
-            if (!project.version.toString().endsWith("SNAPSHOT")) {
                 closeStagingRepoTask.apply {
                     mustRunAfter(publishToMavenCentralTask)
                 }
@@ -46,8 +49,8 @@ open class MavenCentralPublishPlugin : Plugin<Project> {
                             })
 
                             credentials {
-                                username = project.property("sonatypeUsername") as String
-                                password = project.property("sonatypePassword") as String
+                                username = rootProject.property("sonatypeUsername") as String
+                                password = rootProject.property("sonatypePassword") as String
                             }
                         }
 
