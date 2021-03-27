@@ -30,40 +30,39 @@ open class MavenCentralPublishPlugin : Plugin<Project> {
 
         project.afterEvaluate {
 
+            if (!project.version.toString().endsWith("SNAPSHOT")) {
+                subprojects {
+                    val subProject = this
 
-            subprojects {
-                val subProject = this
+                    plugins.withId("maven-publish") {
 
-                plugins.withId("maven-publish") {
+                        val repoName = "sonatype"
 
-                    val repoName = "sonatype"
+                        subProject.extensions.getByType<PublishingExtension>().repositories.maven {
+                            name = "sonatype"
+                            setUrl(subProject.provider {
+                                subProject.uri(StagingRepoInfoHolder.getStageRepoInfo().stagedRepositoryUrl)
+                            })
 
-                    subProject.extensions.getByType<PublishingExtension>().repositories.maven {
-                        name = "sonatype"
-                        setUrl(subProject.provider {
-                            subProject.uri(StagingRepoInfoHolder.getStageRepoInfo().stagedRepositoryUrl)
+                            credentials {
+                                username = project.property("sonatypeUsername") as String
+                                password = project.property("sonatypePassword") as String
+                            }
                         }
-//                            "https://oss.sonatype.org/service/local/staging/deployByRepositoryId/iokuberig-1042"
-                        )
 
-                        credentials {
-                            username = project.property("sonatypeUsername") as String
-                            password = project.property("sonatypePassword") as String
-                        }
+                        val publishTask =
+                            subProject.tasks.getByName("publish${subProject.name.capitalize()}-mavenPublicationTo${repoName.capitalize()}Repository")
+
+                        publishTask.dependsOn(createStagingRepoTask)
+                        publishToMavenCentralTask.dependsOn(publishTask)
+
+                        closeStagingRepoTask.mustRunAfter(publishTask)
+                        releaseStagingRepoTask.mustRunAfter(publishTask)
                     }
-
-                    val publishTask = subProject.tasks.getByName("publish${subProject.name.capitalize()}-mavenPublicationTo${repoName.capitalize()}Repository")
-
-                    publishTask.dependsOn(createStagingRepoTask)
-                    publishToMavenCentralTask.dependsOn(publishTask)
-
-                    closeStagingRepoTask.mustRunAfter(publishTask)
-                    releaseStagingRepoTask.mustRunAfter(publishTask)
                 }
             }
         }
     }
-
 
 
 }
