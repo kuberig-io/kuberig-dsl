@@ -43,6 +43,6 @@ deploy:
   extends:
     - .cache
   script:
-    - ./ci-gradle.sh deploy
+    - ./ci-gradle.sh version
   after_script:
     - ./ci-gradle-cleanup.sh
