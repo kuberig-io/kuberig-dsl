@@ -31,9 +31,9 @@ fun setProperty(propertyName: String, envVarName: String) {
     }
 }
 
-jgitver {
+/*jgitver {
     strategy(fr.brouillard.oss.jgitver.Strategies.MAVEN)
-}
+}*/
 
 fun requireProperty(propertyName: String) {
     check(project.hasProperty(propertyName)) { "$propertyName property missing." }

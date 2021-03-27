@@ -42,13 +42,15 @@ open class StagingRepoCreationTask : DefaultTask() {
             .header("Content-Type", "application/xml")
             .body(xmlMapper.writeValueAsString(promoteRequestRequest)).asString()
 
-        if (!apiResponse.isSuccess) {
-            throw IllegalStateException("Failed to create maven central staging repository")
-        }
-
         println("asString.status = ${apiResponse.status}")
         println("asString.statusText = ${apiResponse.statusText}")
         println("asString = ${apiResponse.body}")
+
+        println("asString.headers" + apiResponse.headers)
+
+        if (!apiResponse.isSuccess) {
+            throw IllegalStateException("Failed to create maven central staging repository")
+        }
 
         val promoteRequestResponse = xmlMapper.readValue(apiResponse.body, PromoteRequestResponse::class.java)
 
