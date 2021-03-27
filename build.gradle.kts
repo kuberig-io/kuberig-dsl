@@ -31,23 +31,8 @@ fun setProperty(propertyName: String, envVarName: String) {
     }
 }
 
-fun determineVersion(): String {
-    val env = System.getenv()
-
-    return if (isCiBuild()) {
-        if (isReleaseBuild()) {
-            env["CI_COMMIT_TAG"]!!
-        } else {
-            env["CI_COMMIT_REF_SLUG"]!! + "-SNAPSHOT"
-        }
-    } else {
-        if (project.version.toString() == "unspecified") {
-            println("Defaulting to version 0.0.0")
-            "0.0.0-SNAPSHOT"
-        } else {
-            project.version.toString()
-        }
-    }
+jgitver {
+    strategy(fr.brouillard.oss.jgitver.Strategies.MAVEN)
 }
 
 fun requireProperty(propertyName: String) {
@@ -57,7 +42,8 @@ fun requireProperty(propertyName: String) {
 plugins {
     id("org.jetbrains.kotlin.jvm") apply false
     id("org.jetbrains.dokka") apply false
-    id("io.github.gradle-nexus.publish-plugin")
+    id("io.kuberig.maven-central")
+    id("fr.brouillard.oss.gradle.jgitver") version "0.10.0-rc03"
 }
 
 if (isCiBuild()) {
@@ -70,18 +56,7 @@ if (isCiBuild()) {
     requireProperty("signing.secretKeyRingFile")
 }
 
-val projectVersion = determineVersion()
-
 group = "io.kuberig"
-version = projectVersion
-
-nexusPublishing {
-    repositories {
-        sonatype {
-            stagingProfileId.set("a75126268d08")
-        }
-    }
-}
 
 subprojects {
     apply {
@@ -96,8 +71,8 @@ subprojects {
 
     val subProject = this
 
-    group = "io.kuberig"
-    subProject.version = projectVersion
+    subProject.group = rootProject.group
+    subProject.version = rootProject.version
 
     repositories {
         mavenCentral()
@@ -175,17 +150,7 @@ subprojects {
         repositories {
             maven {
                 name = "local"
-                // change URLs to point to your repos, e.g. http://my.org/repo
-                val releasesRepoUrl = uri("$buildDir/repos/releases")
-                val snapshotsRepoUrl = uri("$buildDir/repos/snapshots")
-
-                val urlToUse = if (projectVersion.endsWith("SNAPSHOT")) {
-                        snapshotsRepoUrl
-                } else {
-                    releasesRepoUrl
-                }
-
-                url = urlToUse
+                url = uri("$buildDir/repos/releases")
             }
         }
 
@@ -226,7 +191,7 @@ subprojects {
         publishing.publications.withType<MavenPublication>().all {
             groupId = subProject.group as String
             artifactId = subProject.name
-            version = subProject.version as String
+            version = subProject.version.toString()
 
             val vcsUrl = project.properties["vcsUrl"]!! as String
 
@@ -274,10 +239,10 @@ tasks.register("deploy") {
                     dependsOn(it.tasks.getByName("publishAllPublicationsToGitLabRepository"))
                 }
                 dependsOn(it.tasks.getByName("publishAllPublicationsToLocalRepository"))
-                dependsOn(it.tasks.getByName("publishToSonatype"))
             }
+            dependsOn("publishToMavenCentral")
 
-            dependsOn("closeSonatypeStagingRepository")
+            dependsOn("closeStagingRepo")
             //dependsOn(":kuberig-dsl-generator-gradle-plugin:publishPlugins")
         } else {
             // snapshot build
@@ -295,5 +260,3 @@ tasks.register("deploy") {
         project.subprojects.forEach { dependsOn(it.tasks.getByName("publishAllPublicationsToLocalRepository")) }
     }
 }
-
-tasks.register<manual.StagingRepoCreationTask>("createStagingRepo")
