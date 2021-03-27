@@ -7,7 +7,7 @@ fun isCiBuild(): Boolean {
 }
 
 fun isReleaseBuild(): Boolean {
-    return isCiBuild() && System.getenv().containsKey("CI_COMMIT_TAG")
+    return isCiBuild() && !project.version.toString().endsWith("SNAPSHOT")
 }
 
 fun isCiJobTokenAvailable(): Boolean {
