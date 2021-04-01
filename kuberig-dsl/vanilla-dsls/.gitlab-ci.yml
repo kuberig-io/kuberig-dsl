@@ -1,0 +1,2 @@
+include:
+  - local: "/kuberig-dsl-kubernetes/.gitlab-ci.yml"
