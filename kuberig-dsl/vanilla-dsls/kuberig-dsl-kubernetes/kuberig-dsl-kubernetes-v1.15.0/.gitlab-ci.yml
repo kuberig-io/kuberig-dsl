@@ -1,0 +1,6 @@
+kuberig-dsl-kubernetes-v1.14.10:
+  stage: dsls
+  script:
+    - ../../../../ci-gradle.sh version build publishToMavenLocal
+  after_script:
+    - ../../../../ci-gradle-cleanup.sh

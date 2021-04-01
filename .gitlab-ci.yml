@@ -1,3 +1,6 @@
+include:
+  - local: '/kuberig-dsl/vanilla-dsls/.gitlab-ci.yml'
+
 .cache:
   cache:
     key: ${CI_COMMIT_REF_SLUG}
@@ -10,8 +13,8 @@ image: gradle:6.8.3-jdk15-hotspot
 
 stages:
   - build
-  - test
   - deploy
+  - dsls
 
 build:
   stage: build
@@ -32,6 +35,6 @@ deploy:
   extends:
     - .cache
   script:
-    - ./ci-gradle.sh version deploy
+    - ./ci-gradle.sh version publishToMavenLocal
   after_script:
     - ./ci-gradle-cleanup.sh
