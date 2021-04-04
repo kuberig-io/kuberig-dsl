@@ -4,3 +4,5 @@ kuberig-dsl-kubernetes-v1.14.10:
     - ../../../../ci-gradle.sh version build publishToMavenLocal
   after_script:
     - ../../../../ci-gradle-cleanup.sh
+  needs:
+    - kuberig-dsl-deploy

@@ -16,7 +16,7 @@ stages:
   - deploy
   - dsls
 
-build:
+kuberig-dsl-build:
   stage: build
   extends:
     - .cache
@@ -30,7 +30,7 @@ build:
     reports:
       junit: "**/build/test-results/test/**/TEST-*.xml"
 
-deploy:
+kuberig-dsl-deploy:
   stage: deploy
   extends:
     - .cache
@@ -38,3 +38,5 @@ deploy:
     - ./ci-gradle.sh version publishToMavenLocal
   after_script:
     - ./ci-gradle-cleanup.sh
+  needs:
+    - kuberig-dsl-build
