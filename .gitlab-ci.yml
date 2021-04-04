@@ -1,5 +1,5 @@
 include:
-  - local: '/kuberig-dsl/vanilla-dsls/.gitlab-ci.yml'
+  - '/kuberig-dsl/vanilla-dsls/.gitlab-ci.yml'
 
 .cache:
   cache:
