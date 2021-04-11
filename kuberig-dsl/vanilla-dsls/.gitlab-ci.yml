@@ -1,2 +1,0 @@
-include:
-  - "/kuberig-dsl/vanilla-dsls/kuberig-dsl-kubernetes/.gitlab-ci.yml"
