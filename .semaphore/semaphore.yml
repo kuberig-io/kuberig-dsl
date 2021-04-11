@@ -15,7 +15,7 @@ blocks:
           commands:
             - sem-version java 11
             - checkout
-            - ./gradlew build -x test
+            - ./gradlew build -x test -x functionalTest
       secrets:
         - name: gradle-setup
       prologue:
