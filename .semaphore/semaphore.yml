@@ -4,6 +4,9 @@ agent:
   machine:
     type: e1-standard-8
     os_image: ubuntu1804
+  containers:
+    - name: main
+      image: 'gradle:6.8.3-jdk15-hotspot'
 blocks:
   - name: Gradle
     task:
@@ -15,3 +18,4 @@ blocks:
             - ./gradlew build
       secrets:
         - name: gradle-setup
+    dependencies: []
