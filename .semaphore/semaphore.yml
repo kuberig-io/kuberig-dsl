@@ -13,3 +13,5 @@ blocks:
             - sem-version java 1.8
             - checkout
             - ./gradlew build
+      secrets:
+        - name: gradle-setup
