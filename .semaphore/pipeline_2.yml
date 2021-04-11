@@ -22,3 +22,5 @@ blocks:
               values:
                 - v1.14.10
                 - v1.15.0
+      secrets:
+        - name: gradle-setup
