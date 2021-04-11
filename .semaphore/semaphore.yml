@@ -1,5 +1,5 @@
 version: v1.0
-name: Java
+name: kuberig-dsl
 agent:
   machine:
     type: e1-standard-8
@@ -8,10 +8,10 @@ auto_cancel:
   queued:
     when: 'true'
 blocks:
-  - name: 'kuberig-dsl[build]'
+  - name: kuberig-dsl
     task:
       jobs:
-        - name: Build
+        - name: Build & Publish
           commands:
             - sem-version java 11
             - checkout
@@ -26,104 +26,6 @@ blocks:
           commands:
             - cache store dot-gradle ~/.gradle
     dependencies: []
-  - name: 'kuberig-dsl-kubernetes[generation]'
-    dependencies:
-      - 'kuberig-dsl[build]'
-    task:
-      secrets:
-        - name: gradle-setup
-      jobs:
-        - name: Build
-          commands:
-            - sem-version java 11
-            - checkout
-            - 'cd kuberig-dsl/vanilla-dsls/kuberig-dsl-kubernetes/kuberig-dsl-kubernetes-${KUBERNETES_VERSION} '
-            - ./gradlew build
-          matrix:
-            - env_var: KUBERNETES_VERSION
-              values:
-                - v1.14.10
-                - v1.15.0
-                - v1.15.1
-                - v1.15.10
-                - v1.15.11
-                - v1.15.12
-                - v1.15.2
-                - v1.15.3
-                - v1.15.4
-                - v1.15.5
-                - v1.15.6
-                - v1.15.7
-                - v1.15.8
-                - v1.15.9
-                - v1.16.0
-                - v1.16.1
-                - v1.16.10
-                - v1.16.11
-                - v1.16.12
-                - v1.16.13
-                - v1.16.14
-                - v1.16.15
-                - v1.16.2
-                - v1.16.3
-                - v1.16.4
-                - v1.16.5
-                - v1.16.6
-                - v1.16.7
-                - v1.16.8
-                - v1.16.9
-                - v1.17.0
-                - v1.17.1
-                - v1.17.10
-                - v1.17.11
-                - v1.17.12
-                - v1.17.13
-                - v1.17.14
-                - v1.17.15
-                - v1.17.16
-                - v1.17.17
-                - v1.17.2
-                - v1.17.3
-                - v1.17.4
-                - v1.17.5
-                - v1.17.6
-                - v1.17.7
-                - v1.17.8
-                - v1.17.9
-                - v1.18.0
-                - v1.18.1
-                - v1.18.10
-                - v1.18.11
-                - v1.18.12
-                - v1.18.13
-                - v1.18.14
-                - v1.18.15
-                - v1.18.16
-                - v1.18.17
-                - v1.18.2
-                - v1.18.3
-                - v1.18.4
-                - v1.18.5
-                - v1.18.6
-                - v1.18.7
-                - v1.18.8
-                - v1.18.9
-                - v1.19.0
-                - v1.19.1
-                - v1.19.2
-                - v1.19.3
-                - v1.19.4
-                - v1.19.5
-                - v1.19.6
-                - v1.19.7
-                - v1.19.8
-                - v1.19.9
-                - v1.20.0
-                - v1.20.1
-                - v1.20.2
-                - v1.20.3
-                - v1.20.4
-                - v1.20.5
-      prologue:
-        commands:
-          - cache restore dot-gradle
+promotions:
+  - name: kuberig-dsl-kubernetes
+    pipeline_file: pipeline_2.yml

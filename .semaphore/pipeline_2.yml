@@ -1,0 +1,28 @@
+version: v1.0
+name: 'kuberig-dsl-kubernetes[generate]'
+agent:
+  machine:
+    type: e1-standard-8
+    os_image: ubuntu1804
+  containers:
+    - name: main
+      image: 'gradle:6.8.3-jdk11-hotspot'
+blocks:
+  - name: 'kuberig-dsl-kubernetes[generate]'
+    dependencies: []
+    task:
+      prologue:
+        commands:
+          - cache restore dot-gradle
+      jobs:
+        - name: Build & Publish
+          commands:
+            - sem-version java 11
+            - checkout
+            - 'cd kuberig-dsl/vanilla-dsls/kuberig-dsl-kubernetes/kuberig-dsl-kubernetes-${KUBERNETES_VERSION} '
+            - gradle build
+          matrix:
+            - env_var: KUBERNETES_VERSION
+              values:
+                - v1.14.10
+                - v1.15.0
