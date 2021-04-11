@@ -7,6 +7,10 @@ agent:
   containers:
     - name: main
       image: 'gradle:6.8.3-jdk15-hotspot'
+global_job_config:
+  prologue:
+    commands:
+      - echo $DOCKERHUB_PASSWORD | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
 blocks:
   - name: 'kuberig-dsl[build]'
     task:
@@ -14,7 +18,7 @@ blocks:
         - name: Build
           commands:
             - checkout
-            - gradle build
+            - gradle build -x test
       secrets:
         - name: gradle-setup
     dependencies: []
@@ -27,7 +31,9 @@ blocks:
       jobs:
         - name: 'Job #1'
           commands:
-            - 'cd kuberig-dsl/vanilla-dsls/kuberig-dsl-kubernetes/kuberig-dsl-kubernetes-${KUBERNETES_VERSION} && gradle build'
+            - checkout
+            - 'cd kuberig-dsl/vanilla-dsls/kuberig-dsl-kubernetes/kuberig-dsl-kubernetes-${KUBERNETES_VERSION} '
+            - gradle build
           matrix:
             - env_var: KUBERNETES_VERSION
               values:
