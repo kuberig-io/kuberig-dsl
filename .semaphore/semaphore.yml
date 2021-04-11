@@ -20,11 +20,13 @@ blocks:
         - name: gradle-setup
       prologue:
         commands:
-          - cache restore dot-gradle
+          - cache restore gradle-user-home
+          - cache restore project-dot-gradle
       epilogue:
         always:
           commands:
-            - cache store dot-gradle ~/.gradle
+            - cache store gradle-user-home ~/.gradle
+            - cache store project-dot-gradle ~/kuberig-dsl/.gradle
     dependencies: []
 promotions:
   - name: kuberig-dsl-kubernetes

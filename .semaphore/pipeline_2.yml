@@ -11,9 +11,6 @@ blocks:
   - name: 'kuberig-dsl-kubernetes[generate]'
     dependencies: []
     task:
-      prologue:
-        commands:
-          - cache restore dot-gradle
       jobs:
         - name: Build & Publish
           commands:
