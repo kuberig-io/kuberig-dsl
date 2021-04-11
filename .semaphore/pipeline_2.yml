@@ -17,7 +17,6 @@ blocks:
       jobs:
         - name: Build & Publish
           commands:
-            - sem-version java 11
             - checkout
             - 'cd kuberig-dsl/vanilla-dsls/kuberig-dsl-kubernetes/kuberig-dsl-kubernetes-${KUBERNETES_VERSION} '
             - gradle build
