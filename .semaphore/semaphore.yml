@@ -20,6 +20,7 @@ blocks:
             - checkout
             - gradle build -x test
       secrets:
+        - name: docker-hub-creds
         - name: gradle-setup
     dependencies: []
   - name: 'kuberig-dsl-kubernetes[generation]'
