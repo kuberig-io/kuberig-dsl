@@ -2,26 +2,29 @@ version: v1.0
 name: Java
 agent:
   machine:
-    type: e1-standard-8
+    type: e1-standard-4
     os_image: ubuntu1804
-  containers:
-    - name: main
-      image: 'gradle:6.8.3-jdk15-hotspot'
-global_job_config:
-  prologue:
-    commands:
-      - echo $DOCKERHUB_PASSWORD | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+auto_cancel:
+  queued:
+    when: 'true'
 blocks:
   - name: 'kuberig-dsl[build]'
     task:
       jobs:
         - name: Build
           commands:
+            - sem-version java 11
             - checkout
-            - gradle build -x test
+            - ./gradlew build -x test
       secrets:
-        - name: docker-hub-creds
         - name: gradle-setup
+      prologue:
+        commands:
+          - cache restore dot-gradle
+      epilogue:
+        always:
+          commands:
+            - cache store dot-gradle ~/.gradle
     dependencies: []
   - name: 'kuberig-dsl-kubernetes[generation]'
     dependencies:
@@ -30,11 +33,12 @@ blocks:
       secrets:
         - name: gradle-setup
       jobs:
-        - name: 'Job #1'
+        - name: Build
           commands:
+            - sem-version java 11
             - checkout
             - 'cd kuberig-dsl/vanilla-dsls/kuberig-dsl-kubernetes/kuberig-dsl-kubernetes-${KUBERNETES_VERSION} '
-            - gradle build
+            - ./gradlew build
           matrix:
             - env_var: KUBERNETES_VERSION
               values:
@@ -120,4 +124,6 @@ blocks:
                 - v1.20.3
                 - v1.20.4
                 - v1.20.5
-                - ''
+      prologue:
+        commands:
+          - cache restore dot-gradle
