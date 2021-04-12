@@ -14,6 +14,10 @@ blocks:
             - sem-version java 11
             - checkout
             - cache restore project-dot-gradle
+            - cache restore build-logic-build
+            - cache restore kuberig-dsl-base-build
+            - cache restore kuberig-dsl-generator-build
+            - cache restore kuberig-dsl-generator-gradle-plugin-build
             - 'cd kuberig-dsl/vanilla-dsls/kuberig-dsl-kubernetes/kuberig-dsl-kubernetes-${KUBERNETES_VERSION} '
             - ./gradlew build
           matrix:

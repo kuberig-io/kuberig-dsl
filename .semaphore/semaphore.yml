@@ -16,6 +16,10 @@ blocks:
             - sem-version java 11
             - checkout
             - cache restore project-dot-gradle
+            - cache restore build-logic-build
+            - cache restore kuberig-dsl-base-build
+            - cache restore kuberig-dsl-generator-build
+            - cache restore kuberig-dsl-generator-gradle-plugin-build
             - ./gradlew build -x test -x functionalTest
       secrets:
         - name: gradle-setup
@@ -27,6 +31,10 @@ blocks:
           commands:
             - cache store gradle-user-home ~/.gradle
             - cache store project-dot-gradle ~/kuberig-dsl/.gradle
+            - cache store build-logic-build ~/kuberig-dsl/build-logic/build
+            - cache store kuberig-dsl-base-build ~/kuberig-dsl/kuberig-dsl-base/build
+            - cache store kuberig-dsl-generator-build ~/kuberig-dsl/kuberig-dsl-generator/build
+            - cache store kuberig-dsl-generator-gradle-plugin-build ~/kuberig-dsl/kuberig-dsl-generator-gradle-plugin/build
     dependencies: []
 promotions:
   - name: kuberig-dsl-kubernetes
