@@ -1,0 +1,39 @@
+version: v1.0
+name: 'kuberig-dsl-kubernetes[generate]'
+agent:
+  machine:
+    type: e1-standard-8
+    os_image: ubuntu1804
+blocks:
+  - name: 'kuberig-dsl-kubernetes[generate]'
+    dependencies: []
+    task:
+      jobs:
+        - name: Build & Publish
+          commands:
+            - sem-version java 11
+            - checkout
+            - cache restore project-dot-gradle
+            - cache restore build-logic-build
+            - cache restore kuberig-dsl-base-build
+            - cache restore kuberig-dsl-generator-build
+            - cache restore kuberig-dsl-generator-gradle-plugin-build
+            - 'cd kuberig-dsl/vanilla-dsls/kuberig-dsl-openshift/kuberig-dsl-kubernetes-${OPENSHIFT_VERSION} '
+            - ./gradlew publishToMavenLocal
+          matrix:
+            - env_var: OPENSHIFT_VERSION
+              values:
+                - v3.9.0
+                - v3.10.0
+                - v3.11.0
+                - v4.1.0
+                - v4.2.0
+                - v4.3.0
+                - v4.4.0
+                - v4.5.0
+                - v4.6.0
+      secrets:
+        - name: gradle-setup
+      prologue:
+        commands:
+          - cache restore gradle-user-home

@@ -20,7 +20,7 @@ blocks:
             - cache restore kuberig-dsl-base-build
             - cache restore kuberig-dsl-generator-build
             - cache restore kuberig-dsl-generator-gradle-plugin-build
-            - ./gradlew build -x test -x functionalTest
+            - ./gradlew publishToMavenLocal -x test -x functionalTest
       secrets:
         - name: gradle-setup
       prologue:
@@ -41,3 +41,7 @@ promotions:
     pipeline_file: kuberig-dsl-kubernetes-promotion.yml
     auto_promote:
       when: result = 'passed'
+  - name: kuberig-dsl-openshift
+      pipeline_file: kuberig-dsl-openshift-promotion.yml
+      auto_promote:
+        when: result = 'passed'
