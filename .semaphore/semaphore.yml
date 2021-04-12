@@ -42,6 +42,6 @@ promotions:
     auto_promote:
       when: result = 'passed'
   - name: kuberig-dsl-openshift
-      pipeline_file: kuberig-dsl-openshift-promotion.yml
-      auto_promote:
-        when: result = 'passed'
+    pipeline_file: kuberig-dsl-openshift-promotion.yml
+    auto_promote:
+      when: result = 'passed'
