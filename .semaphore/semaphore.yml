@@ -15,13 +15,13 @@ blocks:
           commands:
             - sem-version java 11
             - checkout
+            - cache restore project-dot-gradle
             - ./gradlew build -x test -x functionalTest
       secrets:
         - name: gradle-setup
       prologue:
         commands:
           - cache restore gradle-user-home
-          - cache restore project-dot-gradle
       epilogue:
         always:
           commands:

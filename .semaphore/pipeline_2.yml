@@ -4,9 +4,6 @@ agent:
   machine:
     type: e1-standard-8
     os_image: ubuntu1804
-  containers:
-    - name: main
-      image: 'gradle:6.8.3-jdk11-hotspot'
 blocks:
   - name: 'kuberig-dsl-kubernetes[generate]'
     dependencies: []
@@ -14,9 +11,11 @@ blocks:
       jobs:
         - name: Build & Publish
           commands:
+            - sem-version java 11
             - checkout
+            - cache restore project-dot-gradle
             - 'cd kuberig-dsl/vanilla-dsls/kuberig-dsl-kubernetes/kuberig-dsl-kubernetes-${KUBERNETES_VERSION} '
-            - gradle build
+            - ../../../../gradlew build
           matrix:
             - env_var: KUBERNETES_VERSION
               values:
@@ -24,3 +23,6 @@ blocks:
                 - v1.15.0
       secrets:
         - name: gradle-setup
+      prologue:
+        commands:
+          - cache restore gradle-user-home
