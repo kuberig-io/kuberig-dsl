@@ -15,7 +15,7 @@ blocks:
             - checkout
             - cache restore project-dot-gradle
             - 'cd kuberig-dsl/vanilla-dsls/kuberig-dsl-kubernetes/kuberig-dsl-kubernetes-${KUBERNETES_VERSION} '
-            - ../../../../gradlew build
+            - ./gradlew build
           matrix:
             - env_var: KUBERNETES_VERSION
               values:

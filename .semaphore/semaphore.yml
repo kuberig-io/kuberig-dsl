@@ -30,6 +30,6 @@ blocks:
     dependencies: []
 promotions:
   - name: kuberig-dsl-kubernetes
-    pipeline_file: pipeline_2.yml
+    pipeline_file: kuberig-dsl-kubernetes-promotion.yml
     auto_promote:
       when: result = 'passed'
