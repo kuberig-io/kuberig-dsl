@@ -42,15 +42,19 @@ fun generateModules(platformDir: File) {
             val rootGradleBatFile = File(rootProject.projectDir, "gradlew.bat")
             rootGradleBatFile.copyTo(gradlewBatFile, true)
 
-
+            exec {
+                workingDir = k8sModule
+                commandLine("chmod", "+x", "gradlew")
+            }
         }
     }
 }
 
 tasks.create("generateDslModules") {
-
-    generateModules(File("kuberig-dsl/vanilla-dsls/kuberig-dsl-kubernetes"))
-    generateModules(File("kuberig-dsl/vanilla-dsls/kuberig-dsl-openshift"))
+    doFirst {
+        generateModules(File("kuberig-dsl/vanilla-dsls/kuberig-dsl-kubernetes"))
+        generateModules(File("kuberig-dsl/vanilla-dsls/kuberig-dsl-openshift"))
+    }
 
     outputs.upToDateWhen { false }
 }
