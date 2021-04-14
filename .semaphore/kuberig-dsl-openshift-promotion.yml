@@ -10,6 +10,10 @@ global_job_config:
       commands:
         - rm ~/.gradle/gradle.properties
         - rm -rf ~/.kuberig-io
+  prologue:
+    commands:
+      - cache restore gradle-user-home
+      - sed -i 's/~/\/home\/semaphore/g' ~/.gradle/gradle.properties
 blocks:
   - name: 'kuberig-dsl-kubernetes[generate]'
     dependencies: []
@@ -40,6 +44,3 @@ blocks:
                 - v4.6.0
       secrets:
         - name: gradle-setup
-      prologue:
-        commands:
-          - cache restore gradle-user-home
