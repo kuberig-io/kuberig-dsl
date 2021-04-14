@@ -20,6 +20,7 @@ blocks:
             - cache restore kuberig-dsl-base-build
             - cache restore kuberig-dsl-generator-build
             - cache restore kuberig-dsl-generator-gradle-plugin-build
+            - cat /home/semaphore/.gradle/gradle.properties | grep signing.secretKeyRingFile
             - ./gradlew publishToMavenLocal -x test -x functionalTest
       secrets:
         - name: gradle-setup
