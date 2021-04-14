@@ -7,6 +7,12 @@ agent:
 auto_cancel:
   queued:
     when: 'true'
+global_job_config:
+  epilogue:
+    always:
+      commands:
+        - rm ~/.gradle/gradle.properties
+        - rm -rf ~/.kuberig-io
 blocks:
   - name: kuberig-dsl
     task:
@@ -34,6 +40,8 @@ blocks:
             - cache store kuberig-dsl-base-build ~/kuberig-dsl/kuberig-dsl-base/build
             - cache store kuberig-dsl-generator-build ~/kuberig-dsl/kuberig-dsl-generator/build
             - cache store kuberig-dsl-generator-gradle-plugin-build ~/kuberig-dsl/kuberig-dsl-generator-gradle-plugin/build
+      secrets:
+        - name: gradle-setup-v2
     dependencies: []
 promotions:
   - name: kuberig-dsl-kubernetes

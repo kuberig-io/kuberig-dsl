@@ -4,6 +4,12 @@ agent:
   machine:
     type: e1-standard-8
     os_image: ubuntu1804
+global_job_config:
+  epilogue:
+    always:
+      commands:
+        - rm ~/.gradle/gradle.properties
+        - rm -rf ~/.kuberig-io
 blocks:
   - name: 'kuberig-dsl-kubernetes[generate]'
     dependencies: []
