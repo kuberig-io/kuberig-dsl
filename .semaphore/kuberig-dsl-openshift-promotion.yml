@@ -1,5 +1,5 @@
 version: v1.0
-name: 'kuberig-dsl-kubernetes[generate]'
+name: 'kuberig-dsl-openshift[generate]'
 agent:
   machine:
     type: e1-standard-8
@@ -15,7 +15,7 @@ global_job_config:
       - cache restore gradle-user-home
       - sed -i 's/~/\/home\/semaphore/g' ~/.gradle/gradle.properties
 blocks:
-  - name: 'kuberig-dsl-kubernetes[generate]'
+  - name: 'kuberig-dsl-openshift[generate]'
     dependencies: []
     task:
       jobs:
@@ -28,7 +28,7 @@ blocks:
             - cache restore kuberig-dsl-base-build
             - cache restore kuberig-dsl-generator-build
             - cache restore kuberig-dsl-generator-gradle-plugin-build
-            - 'cd kuberig-dsl/vanilla-dsls/kuberig-dsl-openshift/kuberig-dsl-kubernetes-${OPENSHIFT_VERSION} '
+            - 'cd kuberig-dsl/vanilla-dsls/kuberig-dsl-openshift/kuberig-dsl-openshift-${OPENSHIFT_VERSION} '
             - ./gradlew publishToMavenLocal
           matrix:
             - env_var: OPENSHIFT_VERSION
