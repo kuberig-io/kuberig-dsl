@@ -4,6 +4,9 @@ agent:
   machine:
     type: e1-standard-8
     os_image: ubuntu1804
+  containers:
+    - name: main
+      image: 'semaphoreci/ubuntu:18.04'
 auto_cancel:
   queued:
     when: 'true'
@@ -22,8 +25,6 @@ blocks:
             - cache restore kuberig-dsl-generator-gradle-plugin-build
             - cat /home/semaphore/.gradle/gradle.properties | grep signing.secretKeyRingFile
             - ./gradlew publishToMavenLocal -x test -x functionalTest
-      secrets:
-        - name: gradle-setup
       prologue:
         commands:
           - cache restore gradle-user-home
