@@ -1,0 +1,6 @@
+generate-dsl:
+  script:
+    - |
+      cd kuberig-dsl/vanilla-dsls/kuberig-dsl-openshift/kuberig-dsl-openshift-${OPENSHIFT_VERSION}
+      source ../../../../ci-gradle-init.sh
+      gradle publishToMavenLocal

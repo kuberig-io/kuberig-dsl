@@ -1,0 +1,6 @@
+generate-dsl:
+  script:
+    - |
+      cd kuberig-dsl/vanilla-dsls/kuberig-dsl-kubernetes/kuberig-dsl-kubernetes-${KUBERNETES_VERSION}
+      source ../../../../ci-gradle-init.sh
+      gradle publishToMavenLocal

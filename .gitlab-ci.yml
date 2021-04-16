@@ -45,10 +45,8 @@ kuberig-dsl-kubernetes:
   stage: dsls
   needs:
     - kuberig-dsl-deploy
-  script:
-    - |
-      cd kuberig-dsl/vanilla-dsls/kuberig-dsl-kubernetes/kuberig-dsl-kubernetes-${KUBERNETES_VERSION}
-      ./gradlew publishToMavenLocal
+  trigger:
+    include: .gitlab-ci/kuberig-dsl-openshift.yml
   parallel:
     matrix:
       - KUBERNETES_VERSION:
@@ -139,10 +137,8 @@ kuberig-dsl-openshift:
   stage: dsls
   needs:
     - kuberig-dsl-deploy
-  script:
-    - |
-      cd kuberig-dsl/vanilla-dsls/kuberig-dsl-openshift/kuberig-dsl-openshift-${OPENSHIFT_VERSION}
-      ./ci-gradle.sh publishToMavenLocal
+  trigger:
+    include: .gitlab-ci/kuberig-dsl-openshift.yml
   parallel:
     matrix:
       - OPENSHIFT_VERSION:
