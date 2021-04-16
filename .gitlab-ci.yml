@@ -21,6 +21,8 @@ stages:
 
 kuberig-dsl-build:
   stage: build
+  tags:
+    - bm
   extends:
     - .cache
   script:
@@ -33,6 +35,8 @@ kuberig-dsl-build:
 
 kuberig-dsl-deploy:
   stage: deploy
+  tags:
+    - bm
   extends:
     - .cache
   script:
