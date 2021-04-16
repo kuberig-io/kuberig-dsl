@@ -6,8 +6,11 @@ include:
     key: ${CI_COMMIT_REF_SLUG}
     policy: pull-push
     paths:
-      - build
-      - .gradle
+      - /builds/kuberig/kuberig-dsl/kuberig-dsl/build
+      - /builds/kuberig/kuberig-dsl/kuberig-dsl-generator/build
+      - /builds/kuberig/kuberig-dsl/kuberig-dsl-generator-gradle-plugin/build
+      - /builds/kuberig/kuberig-dsl/.gradle
+      - /builds/kuberig/.gradle
 
 image: gradle:6.8.3-jdk15-hotspot
 
@@ -23,8 +26,6 @@ kuberig-dsl-build:
   script:
     - ./ci-gradle.sh version build
     - bash <(curl -s https://codecov.io/bash)
-  after_script:
-    - ./ci-gradle-cleanup.sh
   artifacts:
     when: always
     reports:
@@ -36,7 +37,5 @@ kuberig-dsl-deploy:
     - .cache
   script:
     - ./ci-gradle.sh version publishToMavenLocal
-  after_script:
-    - ./ci-gradle-cleanup.sh
   needs:
     - kuberig-dsl-build
