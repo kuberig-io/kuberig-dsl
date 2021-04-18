@@ -3,6 +3,24 @@ plugins {
 }
 
 fun generateModules(platformDir: File) {
+    val platformName = platformDir.name.replace("kuberig-dsl-", "")
+
+    val platformCiFile = File(rootProject.projectDir, ".gitlab-ci/kuberig-dsl-$platformName.yml")
+
+    platformCiFile.writeText(
+        """
+        .generate-dsl-$platformName:
+          script:
+            - |
+              cd kuberig-dsl/vanilla-dsls/kuberig-dsl-$platformName/kuberig-dsl-$platformName-'$'{${platformName.toUpperCase()}_VERSION}
+              source ../../../../ci-gradle-init.sh
+              gradle publishToMavenLocal
+          needs:
+            - kuberig-dsl-deploy
+            
+    """.trimIndent())
+    platformCiFile.appendText("\n\n")
+
     val modules = platformDir.listFiles()
 
     if (modules != null) {
@@ -46,6 +64,20 @@ fun generateModules(platformDir: File) {
                 workingDir = k8sModule
                 commandLine("chmod", "+x", "gradlew")
             }
+
+            val platformVersion = k8sModule.name.replace("kuberig-dsl-$platformName-", "")
+
+            platformCiFile.appendText(
+                """
+                kuberig-dsl-$platformName-$platformVersion:
+                  extends:
+                    - .generate-dsl-$platformName
+                  variables:
+                    ${platformName.toUpperCase()}_VERSION: '$platformVersion'
+                    
+            """.trimIndent()
+            )
+            platformCiFile.appendText("\n\n")
         }
     }
 }

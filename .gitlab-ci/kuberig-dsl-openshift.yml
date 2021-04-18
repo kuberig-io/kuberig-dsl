@@ -1,6 +1,73 @@
-generate-dsl:
+.generate-dsl-openshift:
   script:
     - |
-      cd kuberig-dsl/vanilla-dsls/kuberig-dsl-openshift/kuberig-dsl-openshift-${OPENSHIFT_VERSION}
+      cd kuberig-dsl/vanilla-dsls/kuberig-dsl-openshift/kuberig-dsl-openshift-'$'{OPENSHIFT_VERSION}
       source ../../../../ci-gradle-init.sh
       gradle publishToMavenLocal
+  needs:
+    - kuberig-dsl-deploy
+    
+
+kuberig-dsl-openshift-v4.4.0:
+  extends:
+    - .generate-dsl-openshift
+  variables:
+    OPENSHIFT_VERSION: 'v4.4.0'
+    
+
+kuberig-dsl-openshift-v4.6.0:
+  extends:
+    - .generate-dsl-openshift
+  variables:
+    OPENSHIFT_VERSION: 'v4.6.0'
+    
+
+kuberig-dsl-openshift-v4.3.0:
+  extends:
+    - .generate-dsl-openshift
+  variables:
+    OPENSHIFT_VERSION: 'v4.3.0'
+    
+
+kuberig-dsl-openshift-v4.1.0:
+  extends:
+    - .generate-dsl-openshift
+  variables:
+    OPENSHIFT_VERSION: 'v4.1.0'
+    
+
+kuberig-dsl-openshift-v4.2.0:
+  extends:
+    - .generate-dsl-openshift
+  variables:
+    OPENSHIFT_VERSION: 'v4.2.0'
+    
+
+kuberig-dsl-openshift-v4.5.0:
+  extends:
+    - .generate-dsl-openshift
+  variables:
+    OPENSHIFT_VERSION: 'v4.5.0'
+    
+
+kuberig-dsl-openshift-v3.10.0:
+  extends:
+    - .generate-dsl-openshift
+  variables:
+    OPENSHIFT_VERSION: 'v3.10.0'
+    
+
+kuberig-dsl-openshift-v3.9.0:
+  extends:
+    - .generate-dsl-openshift
+  variables:
+    OPENSHIFT_VERSION: 'v3.9.0'
+    
+
+kuberig-dsl-openshift-v3.11.0:
+  extends:
+    - .generate-dsl-openshift
+  variables:
+    OPENSHIFT_VERSION: 'v3.11.0'
+    
+
