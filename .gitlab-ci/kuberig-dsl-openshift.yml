@@ -1,4 +1,5 @@
 .generate-dsl-openshift:
+  stage: dsls
   script:
     - |
       cd kuberig-dsl/vanilla-dsls/kuberig-dsl-openshift/kuberig-dsl-openshift-'$'{OPENSHIFT_VERSION}

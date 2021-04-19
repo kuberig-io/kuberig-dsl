@@ -10,6 +10,7 @@ fun generateModules(platformDir: File) {
     platformCiFile.writeText(
         """
         .generate-dsl-$platformName:
+          stage: dsls
           script:
             - |
               cd kuberig-dsl/vanilla-dsls/kuberig-dsl-$platformName/kuberig-dsl-$platformName-'$'{${platformName.toUpperCase()}_VERSION}
