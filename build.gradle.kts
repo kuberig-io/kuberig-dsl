@@ -86,8 +86,10 @@ fun generateModules(platformDir: File) {
 tasks.create("generateDslModules") {
     group = "setup"
 
-    generateModules(File("kuberig-dsl/vanilla-dsls/kuberig-dsl-kubernetes"))
-    generateModules(File("kuberig-dsl/vanilla-dsls/kuberig-dsl-openshift"))
+    doLast {
+        generateModules(File("kuberig-dsl/vanilla-dsls/kuberig-dsl-kubernetes"))
+        generateModules(File("kuberig-dsl/vanilla-dsls/kuberig-dsl-openshift"))
+    }
 
     outputs.upToDateWhen { false }
 }
