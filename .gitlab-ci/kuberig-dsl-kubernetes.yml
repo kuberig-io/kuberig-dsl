@@ -9,3 +9,577 @@
     - kuberig-dsl-deploy
     
 
+kuberig-dsl-kubernetes-v1.17.9:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.17.9'
+    
+
+kuberig-dsl-kubernetes-v1.15.6:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.15.6'
+    
+
+kuberig-dsl-kubernetes-v1.19.5:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.19.5'
+    
+
+kuberig-dsl-kubernetes-v1.18.2:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.18.2'
+    
+
+kuberig-dsl-kubernetes-v1.16.7:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.16.7'
+    
+
+kuberig-dsl-kubernetes-v1.18.16:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.18.16'
+    
+
+kuberig-dsl-kubernetes-v1.16.12:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.16.12'
+    
+
+kuberig-dsl-kubernetes-v1.20.3:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.20.3'
+    
+
+kuberig-dsl-kubernetes-v1.16.0:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.16.0'
+    
+
+kuberig-dsl-kubernetes-v1.15.0:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.15.0'
+    
+
+kuberig-dsl-kubernetes-v1.15.12:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.15.12'
+    
+
+kuberig-dsl-kubernetes-v1.18.8:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.18.8'
+    
+
+kuberig-dsl-kubernetes-v1.19.1:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.19.1'
+    
+
+kuberig-dsl-kubernetes-v1.15.8:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.15.8'
+    
+
+kuberig-dsl-kubernetes-v1.20.5:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.20.5'
+    
+
+kuberig-dsl-kubernetes-v1.18.13:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.18.13'
+    
+
+kuberig-dsl-kubernetes-v1.17.7:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.17.7'
+    
+
+kuberig-dsl-kubernetes-v1.18.14:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.18.14'
+    
+
+kuberig-dsl-kubernetes-v1.16.10:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.16.10'
+    
+
+kuberig-dsl-kubernetes-v1.15.1:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.15.1'
+    
+
+kuberig-dsl-kubernetes-v1.18.17:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.18.17'
+    
+
+kuberig-dsl-kubernetes-v1.19.4:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.19.4'
+    
+
+kuberig-dsl-kubernetes-v1.18.1:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.18.1'
+    
+
+kuberig-dsl-kubernetes-v1.18.3:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.18.3'
+    
+
+kuberig-dsl-kubernetes-v1.17.6:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.17.6'
+    
+
+kuberig-dsl-kubernetes-v1.16.3:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.16.3'
+    
+
+kuberig-dsl-kubernetes-v1.19.6:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.19.6'
+    
+
+kuberig-dsl-kubernetes-v1.17.16:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.17.16'
+    
+
+kuberig-dsl-kubernetes-v1.20.4:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.20.4'
+    
+
+kuberig-dsl-kubernetes-v1.18.7:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.18.7'
+    
+
+kuberig-dsl-kubernetes-v1.19.8:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.19.8'
+    
+
+kuberig-dsl-kubernetes-v1.14.10:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.14.10'
+    
+
+kuberig-dsl-kubernetes-v1.17.0:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.17.0'
+    
+
+kuberig-dsl-kubernetes-v1.16.13:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.16.13'
+    
+
+kuberig-dsl-kubernetes-v1.16.8:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.16.8'
+    
+
+kuberig-dsl-kubernetes-v1.15.4:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.15.4'
+    
+
+kuberig-dsl-kubernetes-v1.19.0:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.19.0'
+    
+
+kuberig-dsl-kubernetes-v1.16.14:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.16.14'
+    
+
+kuberig-dsl-kubernetes-v1.19.2:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.19.2'
+    
+
+kuberig-dsl-kubernetes-v1.18.12:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.18.12'
+    
+
+kuberig-dsl-kubernetes-v1.17.17:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.17.17'
+    
+
+kuberig-dsl-kubernetes-v1.18.5:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.18.5'
+    
+
+kuberig-dsl-kubernetes-v1.17.5:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.17.5'
+    
+
+kuberig-dsl-kubernetes-v1.20.2:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.20.2'
+    
+
+kuberig-dsl-kubernetes-v1.15.9:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.15.9'
+    
+
+kuberig-dsl-kubernetes-v1.18.15:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.18.15'
+    
+
+kuberig-dsl-kubernetes-v1.17.10:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.17.10'
+    
+
+kuberig-dsl-kubernetes-v1.17.14:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.17.14'
+    
+
+kuberig-dsl-kubernetes-v1.19.7:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.19.7'
+    
+
+kuberig-dsl-kubernetes-v1.17.8:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.17.8'
+    
+
+kuberig-dsl-kubernetes-v1.15.11:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.15.11'
+    
+
+kuberig-dsl-kubernetes-v1.17.1:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.17.1'
+    
+
+kuberig-dsl-kubernetes-v1.19.3:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.19.3'
+    
+
+kuberig-dsl-kubernetes-v1.16.15:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.16.15'
+    
+
+kuberig-dsl-kubernetes-v1.18.6:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.18.6'
+    
+
+kuberig-dsl-kubernetes-v1.20.0:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.20.0'
+    
+
+kuberig-dsl-kubernetes-v1.15.3:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.15.3'
+    
+
+kuberig-dsl-kubernetes-v1.20.1:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.20.1'
+    
+
+kuberig-dsl-kubernetes-v1.16.6:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.16.6'
+    
+
+kuberig-dsl-kubernetes-v1.17.2:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.17.2'
+    
+
+kuberig-dsl-kubernetes-v1.17.13:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.17.13'
+    
+
+kuberig-dsl-kubernetes-v1.18.10:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.18.10'
+    
+
+kuberig-dsl-kubernetes-v1.16.2:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.16.2'
+    
+
+kuberig-dsl-kubernetes-v1.18.0:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.18.0'
+    
+
+kuberig-dsl-kubernetes-v1.15.2:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.15.2'
+    
+
+kuberig-dsl-kubernetes-v1.17.15:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.17.15'
+    
+
+kuberig-dsl-kubernetes-v1.19.9:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.19.9'
+    
+
+kuberig-dsl-kubernetes-v1.18.4:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.18.4'
+    
+
+kuberig-dsl-kubernetes-v1.15.7:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.15.7'
+    
+
+kuberig-dsl-kubernetes-v1.17.4:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.17.4'
+    
+
+kuberig-dsl-kubernetes-v1.18.9:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.18.9'
+    
+
+kuberig-dsl-kubernetes-v1.18.11:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.18.11'
+    
+
+kuberig-dsl-kubernetes-v1.16.1:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.16.1'
+    
+
+kuberig-dsl-kubernetes-v1.17.11:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.17.11'
+    
+
+kuberig-dsl-kubernetes-v1.17.12:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.17.12'
+    
+
+kuberig-dsl-kubernetes-v1.17.3:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.17.3'
+    
+
+kuberig-dsl-kubernetes-v1.15.5:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.15.5'
+    
+
+kuberig-dsl-kubernetes-v1.16.4:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.16.4'
+    
+
+kuberig-dsl-kubernetes-v1.15.10:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.15.10'
+    
+
+kuberig-dsl-kubernetes-v1.16.5:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.16.5'
+    
+
+kuberig-dsl-kubernetes-v1.16.9:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.16.9'
+    
+
+kuberig-dsl-kubernetes-v1.16.11:
+  extends:
+    - .generate-dsl-kubernetes
+  variables:
+    KUBERNETES_VERSION: 'v1.16.11'
+    
+

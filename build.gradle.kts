@@ -3,6 +3,7 @@ plugins {
 }
 
 fun generateModules(platformDir: File) {
+    println("Entering $platformDir...")
     val platformName = platformDir.name.replace("kuberig-dsl-", "")
 
     val platformCiFile = File(rootProject.projectDir, ".gitlab-ci/kuberig-dsl-$platformName.yml")
@@ -23,8 +24,8 @@ fun generateModules(platformDir: File) {
     platformCiFile.appendText("\n\n")
 
     val modules = platformDir.listFiles()
-
     if (modules != null) {
+
         for (k8sModule in modules) {
             println("Generating ${k8sModule.name}...")
             val settingsFile = File(k8sModule, "settings.gradle.kts")
@@ -87,8 +88,8 @@ tasks.create("generateDslModules") {
     group = "setup"
 
     doLast {
-        generateModules(File("kuberig-dsl/vanilla-dsls/kuberig-dsl-kubernetes"))
-        generateModules(File("kuberig-dsl/vanilla-dsls/kuberig-dsl-openshift"))
+        generateModules(file("kuberig-dsl/vanilla-dsls/kuberig-dsl-kubernetes"))
+        generateModules(file("kuberig-dsl/vanilla-dsls/kuberig-dsl-openshift"))
     }
 
     outputs.upToDateWhen { false }
