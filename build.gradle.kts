@@ -13,7 +13,7 @@ fun generateModules(platformDir: File) {
           stage: dsls
           script:
             - |
-              cd kuberig-dsl/vanilla-dsls/kuberig-dsl-$platformName/kuberig-dsl-$platformName-'$'{${platformName.toUpperCase()}_VERSION}
+              cd kuberig-dsl/vanilla-dsls/kuberig-dsl-$platformName/kuberig-dsl-$platformName-$${platformName.toUpperCase()}_VERSION
               source ../../../../ci-gradle-init.sh
               gradle publishToMavenLocal
           needs:
